@@ -1,0 +1,1 @@
+c+= uBloomColor * texture2D(tBloom,vTexCoord0).xyz;
