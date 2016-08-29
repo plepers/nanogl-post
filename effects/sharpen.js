@@ -27,8 +27,8 @@ Sharpen.prototype.genCode = function( precode, code ) {
 Sharpen.prototype.setupProgram = function( prg ) {
   var a  = this.amount,
       l  = this.limit,
-      bw = this.renderWidth ,
-      bh = this.renderHeight;
+      bw = this.post.bufferWidth ,
+      bh = this.post.bufferHeight;
 
 
   prg.uSharpenKernel( 1/bw, 0, 0, 1/bh );

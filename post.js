@@ -16,7 +16,11 @@ function Post( gl ){
   this.renderWidth  = 1;
   this.renderHeight = 1;
 
+  this.bufferWidth  = 1;
+  this.bufferHeight = 1;
+
   this.enabled = true;
+  this.mipmap  = false;
 
   var ctxAttribs        = gl.getContextAttributes();
   var float_texture_ext = gl.getExtension('OES_texture_float');
@@ -32,21 +36,35 @@ function Post( gl ){
   }
 
 
-  this.mainFbo = new Fbo( gl, 1, 1, {
+  this.mainFbo = new Fbo( gl, {
     depth   : ctxAttribs.depth,
     stencil : ctxAttribs.stencil,
     type    : types,
     format  : gl.RGBA
   });
+  // todo useless resize here?
+  this.mainFbo.resize( 4, 4 );
 
-  this.mainFbo.color.setFilter( false, false, false )
+  this.mainFbo.color.bind();
   this.mainFbo.color.clamp()
+
+  if( this.mipmap ){
+    gl.generateMipmap( gl.TEXTURE_2D );
+
+    var err = gl.getError()
+    if( err ){
+      this.mipmap = false;
+      this.mainFbo.resize( 1,1 );
+    }
+  }
+
+  this.mainFbo.color.setFilter( false, this.mipmap, false )
 
 
   this.prg = new Program( gl );
 
 
-  var fsData = new Float32Array( [0, 0, 2, 0, 0, 2] );
+  var fsData = new Float32Array( [0, 0, 1, 0, 0, 1, 1, 1] );
   this.fsPlane = new GLArrayBuffer( gl, fsData );
   this.fsPlane.attrib( 'aTexCoord0', 2, gl.FLOAT );
 }
@@ -78,10 +96,13 @@ Post.prototype = {
 
   resize : function( w, h ){
 
-    this.renderWidth = w;
+    this.renderWidth  = w;
     this.renderHeight = h;
+
+    this.bufferWidth  = this.mipmap ? nextPOT( w ) : w;
+    this.bufferHeight = this.mipmap ? nextPOT( h ) : h;
     
-    this.mainFbo.resize( w, h );
+    this.mainFbo.resize( this.bufferWidth, this.bufferHeight );
 
     for( var i=0; i< this._effects.length; i++ ){
       this._effects[i].resize(w, h)
@@ -106,10 +127,10 @@ Post.prototype = {
     } else {
       
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport( 0, 0, width, height );
 
     }
 
+    gl.viewport( 0, 0, width, height );
     gl.clearColor( .0, .0, .0, 1.0 );
     // just clear, main fbo or screen one
     this.mainFbo.clear();
@@ -119,7 +140,7 @@ Post.prototype = {
   },
 
 
-  render : function( ){
+  render : function( toFbo ){
 
 
     if( ! this.enabled ){
@@ -129,9 +150,32 @@ Post.prototype = {
 
     var gl = this.gl;
 
+    // mipmap mainFbo here
+    this.mainFbo.color.bind();
+    if( this.mipmap ){
+      gl.generateMipmap( gl.TEXTURE_2D );
+    }
+
+
+
     for( var i = 0; i < this._effects.length; i++ ){
       this._effects[i].preRender()
     }
+
+
+    if( toFbo !== undefined ){
+      toFbo.resize( this.renderWidth, this.renderHeight );
+      toFbo.bind();
+    } else {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
+    }
+
+    gl.clearColor( .0, .0, .0, 1.0 );
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+
+
+    
 
     if( this._shaderInvalid ){
       this.buildProgram();
@@ -145,21 +189,27 @@ Post.prototype = {
 
 
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
-
-    gl.clearColor( .0, .0, .0, 1.0 );
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
     this.prg.tInput( this.mainFbo.color );
+
+
     this.fillScreen( this.prg );
 
   },
 
 
-  fillScreen : function( prg ){
+  fillScreen : function( prg, fullframe ){
+    if( fullframe === true ){
+      prg.uViewportScale( 1, 1 );  
+    } else {
+      prg.uViewportScale(
+        this.renderWidth  / this.bufferWidth ,
+        this.renderHeight / this.bufferHeight 
+      );
+    }
+
     this.fsPlane.attribPointer( prg );
-    this.fsPlane.drawTriangles();
+    this.fsPlane.drawTriangleStrip();
   },
 
 
@@ -196,6 +246,26 @@ Post.prototype = {
 
 
 }
+
+
+// ----------------
+// utilities
+// ----------------
+
+var MAX_POT = 4096;
+
+function nextPOT( n ){
+  var p = 1;
+      
+  while (p < n)
+    p <<= 1;
+  
+  if (p > MAX_POT)
+    p = MAX_POT;
+  
+  return p;
+}
+
 
 
 module.exports = Post;

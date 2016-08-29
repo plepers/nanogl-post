@@ -65,8 +65,8 @@ Grain.prototype.setupProgram = function( prg ) {
 
 
   var ig   = 1 / G_SIZE,
-      bw   = this.renderWidth ,
-      bh   = this.renderHeight,
+      bw   = this.post.bufferWidth ,
+      bh   = this.post.bufferHeight,
       ms   = 1 - this.sharpness;
 
   prg.uGrainCoord(

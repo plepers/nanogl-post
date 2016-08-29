@@ -1,6 +1,7 @@
 
 uniform sampler2D tInput;
 varying vec2 vTexCoord0;
+varying vec2 vTexCoord1;
 
 
 vec3 sRGB( vec3 c )

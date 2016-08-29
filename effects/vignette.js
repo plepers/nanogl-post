@@ -20,16 +20,16 @@ Vignette.prototype.constructor = Vignette;
 
 
 Vignette.prototype.genCode = function( precode, code ) {
-  precode.push( this._preCode )
-  code.   push( this._code )
+  precode.push( this._preCode );
+  code.   push( this._code );
 }
 
 
 Vignette.prototype.setupProgram = function( prg ) {
   var c  = this.color,
       s  = this.strength,
-      bw = this.renderWidth ,
-      bh = this.renderHeight;
+      bw = this.post.renderWidth ,
+      bh = this.post.renderHeight;
 
   var max = Math.max( bw, bh );
   prg.uVignetteAspect(      

@@ -49,10 +49,12 @@ Bloom.prototype.init = function( precode, code ) {
 
   for (var i = 0; i<2; ++i) {
 
-    this.bloomTargets[i] = new Fbo( gl, TEX_SIZE, TEX_SIZE, {
+    this.bloomTargets[i] = new Fbo( gl, {
       type    : types,
       format  : gl.RGB
     });
+
+    this.bloomTargets[i].resize( TEX_SIZE, TEX_SIZE );
 
     this.bloomTargets[i].color.setFilter( true, false, false );
     this.bloomTargets[i].color.clamp();
@@ -114,7 +116,7 @@ Bloom.prototype.preRender = function() {
   this.bloomTargets[1].clear();
   this.prcPrg.tInput( this.bloomTargets[0].color );
   this.prcPrg.uKernel( this.bloomKernel );
-  this.post.fillScreen( this.prcPrg );
+  this.post.fillScreen( this.prcPrg, true );
 
 },
 
