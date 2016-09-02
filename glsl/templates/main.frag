@@ -15,20 +15,16 @@ float luminance( vec3 c )
 }
 
 
-vec3 toneMap(vec3 c){
-  vec3 sqrtc = sqrt( c );
-  return(sqrtc-sqrtc*c) + c*(0.4672*c+vec3(0.5328));
-}
-
 
 {{@precode}}
 
+
 void main(void){
-  vec3 c = texture2D(tInput,vTexCoord0).xyz;
+  vec3 c;
 
   {{@code}}
 
-  gl_FragColor.xyz=toneMap(c);
+  gl_FragColor.xyz=c;
   gl_FragColor.w=1.0;
 
 }

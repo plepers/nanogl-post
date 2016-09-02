@@ -1,10 +1,11 @@
 
+{
+  vec2 pPos=vTexCoord1*uVignetteAspect.xy-uVignetteAspect.zw;
 
-vec2 fT=vTexCoord1*uVignetteAspect.xy-uVignetteAspect.zw;
+  vec3 ramp=clamp(vec3(1.0,1.0,1.0)-uVignette.xyz*dot(pPos,pPos),0.0,1.0);
+  vec3 ramp5=ramp*ramp;
 
-vec3 fN=clamp(vec3(1.0,1.0,1.0)-uVignette.xyz*dot(fT,fT),0.0,1.0);
-vec3 fU=fN*fN;
+  ramp5*=ramp;
 
-fU*=fN;
-
-c*=mix(fN,fU,uVignette.w);
+  c*=mix(ramp,ramp5,uVignette.w);
+}
