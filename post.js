@@ -20,7 +20,7 @@ function Post( gl ){
   this.bufferHeight = 1;
 
   this.enabled = true;
-  this.mipmap  = false;
+  this.mipmap  = true;
 
   var ctxAttribs        = gl.getContextAttributes();
   var float_texture_ext = gl.getExtension('OES_texture_float');
@@ -36,25 +36,22 @@ function Post( gl ){
   }
 
 
-  this.mainFbo = new Fbo( gl, {
-    depth   : ctxAttribs.depth,
-    stencil : ctxAttribs.stencil,
-    type    : types,
-    format  : gl.RGBA
-  });
-  // todo useless resize here?
-  this.mainFbo.resize( 4, 4 );
 
-  this.mainFbo.color.bind();
-  this.mainFbo.color.clamp()
+  this.mainFbo = this.genFbo();
 
+  
+  // test fbo's mipmaping capability
   if( this.mipmap ){
+
+    this.mainFbo.resize( 4, 4 );
     gl.generateMipmap( gl.TEXTURE_2D );
 
-    var err = gl.getError()
+    var err = gl.getError();
     if( err ){
       this.mipmap = false;
-      this.mainFbo.resize( 1,1 );
+      // this fbo is now fu*** up, need to create a fresh one
+      this.mainFbo.dispose()
+      this.mainFbo = this.genFbo();
     }
   }
 
@@ -71,6 +68,24 @@ function Post( gl ){
 
 
 Post.prototype = {
+
+
+  genFbo : function(){
+    var gl = this.gl;
+    var ctxAttribs        = gl.getContextAttributes();
+
+    var fbo = new Fbo( gl, {
+      depth   : ctxAttribs.depth,
+      stencil : ctxAttribs.stencil,
+      type    : types,
+      format  : ctxAttribs.alpha ? gl.RGBA : gl.RGB
+    });
+
+    fbo.color.bind();
+    fbo.color.clamp()
+
+    return fbo;
+  },
 
 
   add : function( effect ){
