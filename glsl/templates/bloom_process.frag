@@ -3,7 +3,7 @@ precision mediump float;
 uniform sampler2D tInput;
 
 uniform vec4 uKernel[BLOOM_SAMPLES];
-varying vec2 vTexCoord0;
+varying vec2 vTexCoordVP;
 
 void main(void)
 {
@@ -13,7 +13,7 @@ void main(void)
   for(int i=0; i<BLOOM_SAMPLES; ++i)
   {
     vec3 kernel = uKernel[i].xyz;
-    color += texture2D( tInput,vTexCoord0 + kernel.xy ).xyz * kernel.z;
+    color += texture2D( tInput,vTexCoordVP + kernel.xy ).xyz * kernel.z;
   }
 
   gl_FragColor = vec4( color, 0.0 );

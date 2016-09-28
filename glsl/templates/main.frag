@@ -1,7 +1,7 @@
 
 uniform sampler2D tInput;
-varying vec2 vTexCoord0;
-varying vec2 vTexCoord1;
+varying vec2 vTexCoordVP;
+varying vec2 vTexCoordFull;
 
 
 vec3 sRGB( vec3 c )
@@ -21,6 +21,9 @@ float luminance( vec3 c )
 
 void main(void){
   vec3 c;
+
+  vec2 texCoordVP   = vTexCoordVP;
+  vec2 texCoordFull = vTexCoordFull;
 
   {{@code}}
 

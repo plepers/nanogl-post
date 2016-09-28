@@ -1,5 +1,5 @@
 module.exports = function( obj ){
 var __t,__p='';
-__p+='\nc = texture2D(tInput,vTexCoord0).xyz;';
+__p+='\nc = texture2D(tInput,texCoordVP).xyz;';
 return __p;
 }
