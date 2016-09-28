@@ -22,18 +22,12 @@ function Post( gl ){
   this.enabled = true;
   this.mipmap  = true;
 
-  var ctxAttribs        = gl.getContextAttributes();
-  var float_texture_ext = gl.getExtension('OES_texture_float');
-  var halfFloat         = gl.getExtension("OES_texture_half_float");
+  this.float_texture_ext   = gl.getExtension('OES_texture_float');
+  this.halfFloat           = gl.getExtension("OES_texture_half_float");
+  this.float_texture_ext_l = gl.getExtension("OES_texture_half_float_linear");
+  this.halfFloat_l         = gl.getExtension("OES_texture_float_linear");
 
-  // just activate ext for now
-  gl.getExtension("OES_texture_half_float_linear");
-  gl.getExtension("OES_texture_float_linear");
 
-  var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
-  if( halfFloat ){
-    types.unshift( halfFloat.HALF_FLOAT_OES );
-  }
 
 
 
@@ -72,7 +66,12 @@ Post.prototype = {
 
   genFbo : function(){
     var gl = this.gl;
+    
     var ctxAttribs        = gl.getContextAttributes();
+    var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
+    if( this.halfFloat ){
+      types.unshift( this.halfFloat.HALF_FLOAT_OES );
+    }
 
     var fbo = new Fbo( gl, {
       depth   : ctxAttribs.depth,
