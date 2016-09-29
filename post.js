@@ -7,7 +7,7 @@ var main_frag = require( './glsl/templates/main.frag.js' );
 var main_vert = require( './glsl/templates/main.vert.js' ); 
 
 
-function Post( gl ){
+function Post( gl, mipmap ){
   this.gl = gl;
 
   this._effects = [];
@@ -20,7 +20,7 @@ function Post( gl ){
   this.bufferHeight = 1;
 
   this.enabled = true;
-  this.mipmap  = true;
+  this.mipmap  = (mipmap === undefined)?false:mipmap;
 
   this.float_texture_ext   = gl.getExtension('OES_texture_float');
   this.halfFloat           = gl.getExtension("OES_texture_half_float");
@@ -62,6 +62,13 @@ function Post( gl ){
 
 
 Post.prototype = {
+
+
+  dispose : function(){
+    this.mainFbo.dispose();
+    this.fsPlane.dispose();
+    this.prg.dispose();
+  },
 
 
   genFbo : function(){
