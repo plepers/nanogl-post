@@ -6,6 +6,8 @@ function BaseEffect(){
   this.renderHeight = 0;
 
   this.post = null;
+
+  this.needDepth = false;
 }
 
 

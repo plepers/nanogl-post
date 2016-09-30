@@ -1,6 +1,6 @@
 
 var Program       = require( 'nanogl/program' );
-var Fbo           = require( 'nanogl/fbo' );
+var Fbo           = require( 'nanogl-depth-texture/fbo' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 
 var main_frag = require( './glsl/templates/main.frag.js' ); 
@@ -12,6 +12,7 @@ function Post( gl, mipmap ){
 
   this._effects = [];
   this._shaderInvalid = true;
+  this._needDepth = false;
 
   this.renderWidth  = 1;
   this.renderHeight = 1;
@@ -80,7 +81,7 @@ Post.prototype = {
       types.unshift( this.halfFloat.HALF_FLOAT_OES );
     }
 
-    var fbo = new Fbo( gl, {
+    var fbo = Fbo.create( gl, {
       depth   : ctxAttribs.depth,
       stencil : ctxAttribs.stencil,
       type    : types,
@@ -94,11 +95,25 @@ Post.prototype = {
   },
 
 
+  genDepthFbo : function(){
+
+    var fbo = Fbo.create( this.gl, {
+      depth : true,
+      format : this.gl.RGB
+    });
+    fbo.color.bind();
+    fbo.color.setFilter( false, false, false );
+    fbo.color.clamp()
+     return fbo;
+  },
+
+
   add : function( effect ){
     if( this._effects.indexOf( effect ) === -1 ){
       this._effects.push( effect );
       effect._init( this );
       effect.resize( this.renderWidth, this.renderHeight );
+      this._needDepth = this._needDepth || effect.needDepth;
       this._shaderInvalid = true;
     }
   },
@@ -111,6 +126,15 @@ Post.prototype = {
       effect.release();
       effect.post = null;
       this._shaderInvalid = true;
+
+
+      if( effect.needDepth ){
+        this._needDepth = false;
+        for (var i = 0; i < this._effects.length; i++) {
+          this._needDepth = this._needDepth || this._effects[i].needDepth;
+        }
+      }
+
     }
   },
 
@@ -129,29 +153,57 @@ Post.prototype = {
       this._effects[i].resize(w, h)
     }
 
+
+    if( this.needDepthPass() ){
+      if( this.depthFbo === null ){
+        this.depthFbo = this.genDepthFbo();
+      }
+      this.depthFbo.resize( this.bufferWidth, this.bufferHeight );
+    }
+
+
   },
 
 
-  preRender : function( width, height ){
+  preRender : function( width, height ){    
+    if( this.enabled && (this.renderWidth !== width || this.renderHeight !== height) ){
+      this.resize( width, height );
+    }
+  },
+
+
+  needDepthPass : function(){
+    return this.enabled && this._needDepth && !this.mainFbo.attachment.isDepthTexture();
+  },
+
+
+  bindDepth : function(){
+    if( ! this.needDepthPass() ){
+      return false;
+    }
+
+    var gl = this.gl;
+    this.depthFbo.bind();
+    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
+    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+    return true;
+  },
+
+
+
+  bindColor : function( ){
 
 
     var gl = this.gl;
     
     if( this.enabled ){
-
-      if( this.renderWidth !== width || this.renderHeight !== height ){
-        this.resize( width, height );
-      }
-
       this.mainFbo.bind();
-
     } else {
-      
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
     }
 
-    gl.viewport( 0, 0, width, height );
+    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
     gl.clearColor( .0, .0, .0, 1.0 );
     // just clear, main fbo or screen one
     this.mainFbo.clear();
@@ -210,8 +262,16 @@ Post.prototype = {
 
 
 
-
     this.prg.tInput( this.mainFbo.color );
+
+
+    if( this._needDepth ){
+      var att = this.mainFbo.attachment;
+      if( att.isDepthTexture() )
+        this.prg.tDepth( att.buffer );
+      else 
+        this.prg.tDepth( this.depthFbo.color );
+    }
 
 
     this.fillScreen( this.prg );
@@ -256,8 +316,11 @@ Post.prototype = {
     var vert = main_vert();
 
 
+    var depthTex = this._needDepth && this.mainFbo.attachment.isDepthTexture();
     var defs = '\n';
     defs += 'precision highp float;\n';
+    defs += '#define NEED_DEPTH '    +(0|this._needDepth)+'\n';
+    defs += '#define TEXTURE_DEPTH ' +(0|depthTex)       +'\n';
 
     this.prg.compile( vert, frag, defs );
 
