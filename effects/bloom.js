@@ -1,14 +1,14 @@
 
 
-var Texture       = require( 'nanogl/texture' ); 
-var Program       = require( 'nanogl/program' ); 
+var Texture       = require( 'nanogl/texture' );
+var Program       = require( 'nanogl/program' );
 var Fbo           = require( 'nanogl/fbo' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 var BaseEffect    = require( './base-effect' );
 
 
-var prc_frag = require( '../glsl/templates/bloom_process.frag.js' )(); 
-var prc_vert = require( '../glsl/templates/main.vert.js' )(); 
+var prc_frag = require( '../glsl/templates/bloom_process.frag.js' )();
+var prc_vert = require( '../glsl/templates/main.vert.js' )();
 
 
 var TEX_SIZE = 256;
@@ -58,7 +58,7 @@ Bloom.prototype.init = function( precode, code ) {
 
     this.bloomTargets[i].color.setFilter( true, false, false );
     this.bloomTargets[i].color.clamp();
-    
+
   }
 
   for( this.bloomSamples = 64; this.bloomSamples + 16 >= maxFuniforms; ){
@@ -79,7 +79,7 @@ Bloom.prototype.init = function( precode, code ) {
 
 
 Bloom.prototype.release = function( precode, code ) {
-  
+
   this.prcPrg.dispose()
   this.prcPrg = null;
   for (var i = 0; i<2; ++i) {
@@ -100,7 +100,7 @@ Bloom.prototype.genCode = function( precode, code ) {
 
 
 Bloom.prototype.preRender = function() {
-  
+
   this.computeKernel();
 
   this.bloomTargets[0].bind();
@@ -122,7 +122,7 @@ Bloom.prototype.preRender = function() {
 
 
 Bloom.prototype.setupProgram = function( prg ) {
-  
+
   var c     = this.color;
 
   prg.uBloomColor(
@@ -172,7 +172,7 @@ Bloom.prototype.transposeKernel = function() {
 
   var kernel = this.bloomKernel;
 
-  var ratio = this.renderWidth / this.renderHeight;
+  var ratio = this.post.renderWidth / this.post.renderHeight;
 
   for( var sample = 0; sample < this.bloomSamples; ++sample ) {
     var i = sample << 2;

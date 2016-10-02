@@ -1,13 +1,13 @@
 
+// effect need scene's depth texture
+BaseEffect.NEED_DEPTH  = 1<<1;
+// effect need linear sampler for input color
+BaseEffect.NEED_LINEAR = 1<<1;
 
 
 function BaseEffect(){
-  this.renderWidth  = 0;
-  this.renderHeight = 0;
-
-  this.post = null;
-
-  this.needDepth = false;
+  this.post         = null;
+  this._flags       = 0;
 }
 
 
@@ -47,9 +47,8 @@ BaseEffect.prototype = {
   },
 
 
-  resize : function(w, h){
-    this.renderWidth  = w;
-    this.renderHeight = h;
+  resize : function(){
+
   }
 
 
