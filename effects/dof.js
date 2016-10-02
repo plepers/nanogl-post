@@ -164,11 +164,11 @@ Dof.prototype.getNearEq = function(){
   var proj = this.camera.lens.getProjection();
 
   V3Z[2] = - this.focus + this.focusRange/2.0;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
+  vec3.transformMat4( V3, V3Z, proj );
   var dMin = V3[2];
 
   V3Z[2] = - this.near;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
+  vec3.transformMat4( V3, V3Z, proj );
   var dMax = V3[2];
 
   V2[0] = 1.0/ (dMax-dMin);
@@ -182,11 +182,11 @@ Dof.prototype.getFarEq = function(){
   var proj = this.camera.lens.getProjection();
 
   V3Z[2] = - this.focus - this.focusRange/2.0;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
+  vec3.transformMat4( V3, V3Z, proj );
   var dMin = V3[2];
 
   V3Z[2] = - this.far;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
+  vec3.transformMat4( V3, V3Z, proj );
   var dMax = V3[2];
 
   V3[0] = 1.0/ (dMax-dMin);
