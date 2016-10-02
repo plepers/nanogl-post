@@ -28,11 +28,6 @@ void InterpolateDof( inout vec3 c, mediump vec3 small, mediump vec3 med, mediump
   mediump float alpha;
 
 
-  // small = small*0.0000001 + vec3(1.0, 0.0, 0.0);
-  // med   = med  *0.0000001 + vec3(0.0, 1.0, 0.0);
-  // large = large*0.0000001 + vec3(0.0, 0.0, 1.0);
-
-
   // Efficiently calculate the cross-blend weights for each sample.
    // Let the unblurred sample to small blur fade happen over distance
    // d0, the small to medium blur over distance d1, and the medium to
@@ -48,6 +43,5 @@ void InterpolateDof( inout vec3 c, mediump vec3 small, mediump vec3 med, mediump
   alpha = 1.0 - dot( weights.yzw, vec3( 16.0 / 17.0, 1.0, 1.0 ) );
 
   c = c*alpha + color;
-  // return half4( color, alpha );
 
 }

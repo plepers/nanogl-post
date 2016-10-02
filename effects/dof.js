@@ -1,3 +1,7 @@
+/*
+ * Based on Earl Hammon GPU Gems 3 book
+ * https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch28.html
+ */
 
 
 var Texture       = require( 'nanogl/texture' );
@@ -26,12 +30,17 @@ var V3  = new Float32Array(3);
 var V3Z = new Float32Array(3);
 
 
+var DOWNSCALE = 4;
+
 function Dof( camera ){
   BaseEffect.call( this );
 
   this._flags = BaseEffect.NEED_DEPTH | BaseEffect.NEED_LINEAR;
 
   this.camera = camera;
+
+  this._available = true;
+
   this.focus = 1.3;
   this.focusRange = 0;
   this.far = 4
@@ -41,7 +50,7 @@ function Dof( camera ){
   this.d1 = .2
 
 
-  this.blurSamples = 3;
+  this.blurSamples = 2;
   this.blurKernel  = new Float32Array( (this.blurSamples*2+1) * 3 );
 
   this.fboDS    = null;
@@ -65,47 +74,31 @@ Dof.prototype.constructor = Dof;
 
 
 
+Dof.prototype.genFbo = function( precode, code ) {
+  var gl = this.post.gl;
+  var res = new Fbo( gl, {
+    format  : gl.RGBA
+  });
+  res.color.setFilter( true, false, false );
+  res.color.clamp();
+  return res;
+};
+
+
 Dof.prototype.init = function( precode, code ) {
   var gl = this.post.gl;
 
+  this._available = this.post.mainFbo.attachment.isDepthTexture();
 
-  this.fboDS = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  this.fboDS.color.setFilter( true, false, false );
-  this.fboDS.color.clamp();
+  if( ! this._available ){
+    return;
+  }
 
-
-  this.fboCoc = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  this.fboCoc.color.setFilter( true, false, false );
-  this.fboCoc.color.clamp();
-
-
-  this.fboMed = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  this.fboMed.color.setFilter( true, false, false );
-  this.fboMed.color.clamp();
-
-
-  this.fboBlurH = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  this.fboBlurH.color.setFilter( true, false, false );
-  this.fboBlurH.color.clamp();
-
-
-  this.fboBlurV = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  this.fboBlurV.color.setFilter( true, false, false );
-  this.fboBlurV.color.clamp();
-
-
-
-  var isDepthTex = this.post.mainFbo.attachment.isDepthTexture();
+  this.fboDS    = this.genFbo();
+  this.fboCoc   = this.genFbo();
+  this.fboMed   = this.genFbo();
+  this.fboBlurH = this.genFbo();
+  this.fboBlurV = this.genFbo();
 
 
   this.prgDS = new Program( gl );
@@ -117,11 +110,9 @@ Dof.prototype.init = function( precode, code ) {
   this.prgMed = new Program( gl );
   this.prgMed.compile( b3x3_vert, b3x3_frag );
 
-
   var defs = '\n';
   defs += 'precision highp float;\n';
   defs += "#define BLUR_SAMPLES " + (this.blurSamples*2+1)+'\n';
-
 
   this.prgBlur = new Program( gl );
   this.prgBlur.compile( blur_vert, blur_frag, defs );
@@ -129,20 +120,35 @@ Dof.prototype.init = function( precode, code ) {
 
 
 Dof.prototype.resize = function() {
-  var bw = this.post.bufferWidth;
-  var bh = this.post.bufferHeight;
+  if( ! this._available ){
+    return;
+  }
 
-  this.fboDS   .resize( bw/4, bh/4 );
-  this.fboCoc  .resize( bw/4, bh/4 );
-  this.fboMed  .resize( bw/4, bh/4 );
-  this.fboBlurH.resize( bw/4, bh/4 );
-  this.fboBlurV.resize( bw/4, bh/4 );
+  var bw = this.post.bufferWidth  / DOWNSCALE;
+  var bh = this.post.bufferHeight / DOWNSCALE;
+
+  this.fboDS   .resize( bw, bh );
+  this.fboCoc  .resize( bw, bh );
+  this.fboMed  .resize( bw, bh );
+  this.fboBlurH.resize( bw, bh );
+  this.fboBlurV.resize( bw, bh );
 }
 
 
 Dof.prototype.release = function(  ) {
-  this.fboDS.dispose();
-  this.prgDS.dispose();
+  if( ! this._available ){
+    return;
+  }
+
+  this.fboDS    .dispose();
+  this.prgDS    .dispose();
+  this.prgMed   .dispose();
+
+  this.fboDS    .dispose();
+  this.fboCoc   .dispose();
+  this.fboMed   .dispose();
+  this.fboBlurH .dispose();
+  this.fboBlurV .dispose();
 }
 
 
@@ -158,11 +164,11 @@ Dof.prototype.getNearEq = function(){
   var proj = this.camera.lens.getProjection();
 
   V3Z[2] = - this.focus + this.focusRange/2.0;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() )
+  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
   var dMin = V3[2];
 
   V3Z[2] = - this.near;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() )
+  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
   var dMax = V3[2];
 
   V2[0] = 1.0/ (dMax-dMin);
@@ -176,11 +182,11 @@ Dof.prototype.getFarEq = function(){
   var proj = this.camera.lens.getProjection();
 
   V3Z[2] = - this.focus - this.focusRange/2.0;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() )
+  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
   var dMin = V3[2];
 
   V3Z[2] = - this.far;
-  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() )
+  vec3.transformMat4( V3, V3Z, this.camera.lens.getProjection() );
   var dMax = V3[2];
 
   V3[0] = 1.0/ (dMax-dMin);
@@ -194,35 +200,31 @@ Dof.prototype.getFarEq = function(){
 
 
 Dof.prototype.preRender = function() {
+  if( ! this._available ){
+    return;
+  }
 
   var fbo, prg;
   var gl = this.post.gl;
 
 
-  fbo = this.fboDS;
-  prg = this.prgDS;
 
-
-  gl.viewport( 0, 0, this.post.renderWidth/4, this.post.renderHeight/4 );
+  gl.viewport( 0, 0, this.post.renderWidth / DOWNSCALE, this.post.renderHeight / DOWNSCALE );
 
 
   //          DownSample
   // ===================
 
+  prg = this.prgDS;
+  fbo = this.fboDS;
+
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
-
-
   prg.use();
-
   prg.tInput(  this.post.mainFbo.color );
-  // todo handle rgb depth?
   prg.tDepth(  this.post.mainFbo.attachment.buffer );
-
-
   prg.uDofEq          ( this.getNearEq() );
   prg.uInvTargetSize ( 1/this.post.bufferWidth, 1/this.post.bufferHeight );
-
   this.post.fillScreen( this.prgDS );
 
 
@@ -276,14 +278,18 @@ Dof.prototype.preRender = function() {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
   prg.use();
-  prg.tCoc ( this.fboCoc.color    );
-  prg.uInvTargetSize ( 4/this.post.bufferWidth, 4/this.post.bufferHeight );
+  prg.tCoc ( this.fboCoc.color );
+  prg.uInvTargetSize ( DOWNSCALE / this.post.bufferWidth, DOWNSCALE / this.post.bufferHeight );
   this.post.fillScreen( prg );
 
 },
 
 
 Dof.prototype.setupProgram = function( prg ) {
+  if( ! this._available ){
+    return;
+  }
+
   prg.tDofMedBlur         ( this.fboMed.color );
   prg.tDofBlur            ( this.fboBlurV.color );
 
@@ -312,10 +318,10 @@ Dof.prototype.setupProgram = function( prg ) {
 
 Dof.prototype.computeKernel = function( h ) {
 
-  var bw = this.post.bufferWidth /4;
-  var bh = this.post.bufferHeight/4;
+  var bw = this.post.bufferWidth  / DOWNSCALE;
+  var bh = this.post.bufferHeight / DOWNSCALE;
 
-  var numSamples = this.blurSamples * 2 +1
+  var numSamples = this.blurSamples * 2 + 1;
   var bufferSize = h ? bw : bh;
   var offsetSize = h ? bh : bw;
   var halfOffset = .5/bufferSize;

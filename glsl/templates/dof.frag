@@ -28,7 +28,7 @@
    // dofEqFar.z is the ratio of the far to the near blur radius.
   farCoc = clamp( uDofEqFar.x * sceneDepth + uDofEqFar.y, 0.0, 1.0 );
   coc = max( nearCoc, farCoc * uDofEqFar.z );
-
+  // coc = nearCoc * step( 0.1, farCoc );
 
   // if ( sceneDepth > .999999 )
   // {
