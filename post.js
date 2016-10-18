@@ -1,16 +1,19 @@
 
 var Program       = require( 'nanogl/program' );
-var Fbo           = require( 'nanogl/fbo' );
+var Fbo           = require( 'nanogl-depth-texture/fbo' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 
-var main_frag = require( './glsl/templates/main.frag.js' ); 
-var main_vert = require( './glsl/templates/main.vert.js' ); 
+var main_frag = require( './glsl/templates/main.frag.js' );
+var main_vert = require( './glsl/templates/main.vert.js' );
+
+var Effect    = require( './effects/base-effect' );
 
 
 function Post( gl, mipmap ){
   this.gl = gl;
 
-  this._effects = [];
+  this._effects   = [];
+  this._flags     = 0;
   this._shaderInvalid = true;
 
   this.renderWidth  = 1;
@@ -20,24 +23,23 @@ function Post( gl, mipmap ){
   this.bufferHeight = 1;
 
   this.enabled = true;
-  this.mipmap  = (mipmap === undefined)?false:mipmap;
+  this.mipmap  = (mipmap === undefined) ? false : mipmap;
 
   this.float_texture_ext   = gl.getExtension('OES_texture_float');
   this.halfFloat           = gl.getExtension("OES_texture_half_float");
   this.float_texture_ext_l = gl.getExtension("OES_texture_half_float_linear");
   this.halfFloat_l         = gl.getExtension("OES_texture_float_linear");
 
-
+  this.hasDepthTexture = false;
 
 
 
   this.mainFbo = this.genFbo();
 
-  
+
   // test fbo's mipmaping capability
   if( this.mipmap ){
 
-    this.mainFbo.resize( 4, 4 );
     gl.generateMipmap( gl.TEXTURE_2D );
 
     var err = gl.getError();
@@ -71,26 +73,59 @@ Post.prototype = {
   },
 
 
+  _needDepth : function(){
+    return (this._flags & Effect.NEED_DEPTH) !== 0;
+  },
+
+  _needLinear : function(){
+    return (this._flags & Effect.NEED_LINEAR) !== 0;
+  },
+
+
   genFbo : function(){
     var gl = this.gl;
-    
+
     var ctxAttribs        = gl.getContextAttributes();
     var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
     if( this.halfFloat ){
       types.unshift( this.halfFloat.HALF_FLOAT_OES );
     }
 
-    var fbo = new Fbo( gl, {
+    var fbo = Fbo.create( gl, {
       depth   : ctxAttribs.depth,
       stencil : ctxAttribs.stencil,
       type    : types,
       format  : ctxAttribs.alpha ? gl.RGBA : gl.RGB
     });
 
+    // force attachment allocation
+    fbo.resize( 4, 4 );
+
     fbo.color.bind();
     fbo.color.clamp()
 
+
+    if( this.hasDepthTexture = fbo.attachment.isDepthTexture() ){
+      var depth = fbo.attachment.buffer
+      depth.bind();
+      depth.clamp();
+      depth.setFilter( false, false, false );
+    }
+
     return fbo;
+  },
+
+
+  genDepthFbo : function(){
+    // depth only FBO
+    var fbo = Fbo.create( this.gl, {
+      depth : true,
+      format : this.gl.RGB
+    });
+    fbo.color.bind();
+    fbo.color.setFilter( false, false, false );
+    fbo.color.clamp()
+     return fbo;
   },
 
 
@@ -99,6 +134,7 @@ Post.prototype = {
       this._effects.push( effect );
       effect._init( this );
       effect.resize( this.renderWidth, this.renderHeight );
+      this._flags |= effect._flags;
       this._shaderInvalid = true;
     }
   },
@@ -111,6 +147,15 @@ Post.prototype = {
       effect.release();
       effect.post = null;
       this._shaderInvalid = true;
+
+
+      if( effect._flags !== 0 ){
+        this._flags = 0;
+        for (var i = 0; i < this._effects.length; i++) {
+          this._flags |= effect._flags;
+        }
+      }
+
     }
   },
 
@@ -122,41 +167,69 @@ Post.prototype = {
 
     this.bufferWidth  = this.mipmap ? nextPOT( w ) : w;
     this.bufferHeight = this.mipmap ? nextPOT( h ) : h;
-    
+
     this.mainFbo.resize( this.bufferWidth, this.bufferHeight );
 
     for( var i=0; i< this._effects.length; i++ ){
-      this._effects[i].resize(w, h)
+      this._effects[i].resize(w, h, this.bufferWidth, this.bufferHeight );
     }
+
+
+    if( this.needDepthPass() ){
+      if( this.depthFbo === null ){
+        this.depthFbo = this.genDepthFbo();
+      }
+      this.depthFbo.resize( this.bufferWidth, this.bufferHeight );
+    }
+
 
   },
 
 
   preRender : function( width, height ){
+    if( this.enabled && (this.renderWidth !== width || this.renderHeight !== height) ){
+      this.resize( width, height );
+    }
+  },
+
+
+  needDepthPass : function(){
+    return this.enabled && this._needDepth() && !this.hasDepthTexture;
+  },
+
+
+  bindDepth : function(){
+    if( ! this.needDepthPass() ){
+      return false;
+    }
+
+    var gl = this.gl;
+    this.depthFbo.bind();
+    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
+    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+    return true;
+  },
+
+
+
+  bindColor : function( ){
 
 
     var gl = this.gl;
-    
+
     if( this.enabled ){
-
-      if( this.renderWidth !== width || this.renderHeight !== height ){
-        this.resize( width, height );
-      }
-
       this.mainFbo.bind();
-
     } else {
-      
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
     }
 
-    gl.viewport( 0, 0, width, height );
+    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
     gl.clearColor( .0, .0, .0, 1.0 );
     // just clear, main fbo or screen one
     this.mainFbo.clear();
 
-    
+
 
   },
 
@@ -196,7 +269,7 @@ Post.prototype = {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 
 
-    
+
 
     if( this._shaderInvalid ){
       this.buildProgram();
@@ -210,8 +283,15 @@ Post.prototype = {
 
 
 
-
     this.prg.tInput( this.mainFbo.color );
+
+
+    if( this._needDepth() ){
+      if( this.hasDepthTexture )
+        this.prg.tDepth( this.mainFbo.attachment.buffer );
+      else
+        this.prg.tDepth( this.depthFbo.color );
+    }
 
 
     this.fillScreen( this.prg );
@@ -221,11 +301,11 @@ Post.prototype = {
 
   fillScreen : function( prg, fullframe ){
     if( fullframe === true ){
-      prg.uViewportScale( 1, 1 );  
+      prg.uViewportScale( 1, 1 );
     } else {
       prg.uViewportScale(
         this.renderWidth  / this.bufferWidth ,
-        this.renderHeight / this.bufferHeight 
+        this.renderHeight / this.bufferHeight
       );
     }
 
@@ -256,12 +336,19 @@ Post.prototype = {
     var vert = main_vert();
 
 
+    var depthTex = this._needDepth() && this.mainFbo.attachment.isDepthTexture();
     var defs = '\n';
     defs += 'precision highp float;\n';
+    defs += '#define NEED_DEPTH '    +(0|this._needDepth())+'\n';
+    defs += '#define TEXTURE_DEPTH ' +(0|depthTex)       +'\n';
 
     this.prg.compile( vert, frag, defs );
 
     this._shaderInvalid = false;
+
+
+    this.mainFbo.color.bind()
+    this.mainFbo.color.setFilter( this._needLinear(), this.mipmap, false );
 
   }
 
@@ -277,13 +364,13 @@ var MAX_POT = 4096;
 
 function nextPOT( n ){
   var p = 1;
-      
+
   while (p < n)
     p <<= 1;
-  
+
   if (p > MAX_POT)
     p = MAX_POT;
-  
+
   return p;
 }
 
