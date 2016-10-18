@@ -80,9 +80,9 @@ module.exports = function(config) {
 
 
     // SL and travis config
-    sauceLabs: {            
-      testName: 'nanogl-post unit tests',
-      startConnect: false
+    sauceLabs: {
+      startConnect: true,
+      testName: 'nanogl-post unit tests'
     },
 
     // define SL browsers
