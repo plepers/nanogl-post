@@ -160,36 +160,41 @@ Post.prototype = {
   },
 
 
+
   resize : function( w, h ){
 
-    this.renderWidth  = w;
-    this.renderHeight = h;
-
-    this.bufferWidth  = this.mipmap ? nextPOT( w ) : w;
-    this.bufferHeight = this.mipmap ? nextPOT( h ) : h;
-
+    this.bufferWidth  = w;
+    this.bufferHeight = h;
+    
     this.mainFbo.resize( this.bufferWidth, this.bufferHeight );
 
     for( var i=0; i< this._effects.length; i++ ){
-      this._effects[i].resize(w, h, this.bufferWidth, this.bufferHeight );
+      this._effects[i].resize(w, h)
     }
-
-
-    if( this.needDepthPass() ){
-      if( this.depthFbo === null ){
-        this.depthFbo = this.genDepthFbo();
-      }
-      this.depthFbo.resize( this.bufferWidth, this.bufferHeight );
-    }
-
 
   },
 
 
-  preRender : function( width, height ){
-    if( this.enabled && (this.renderWidth !== width || this.renderHeight !== height) ){
-      this.resize( width, height );
+  preRender : function( w, h ){
+
+
+    var gl = this.gl;
+
+    this.renderWidth  = w;
+    this.renderHeight = h;
+
+    
+    if( this.enabled ){
+
+      var bufferWidth  = this.mipmap ? nextPOT( w ) : w;
+      var bufferHeight = this.mipmap ? nextPOT( h ) : h;
+
+      if( this.bufferWidth !== bufferWidth || this.bufferHeight !== bufferHeight ){
+        this.resize( bufferWidth, bufferHeight );
+      }
+
     }
+
   },
 
 
