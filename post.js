@@ -40,6 +40,7 @@ function Post( gl, mipmap ){
   // test fbo's mipmaping capability
   if( this.mipmap ){
 
+    this.mainFbo.color.bind()
     gl.generateMipmap( gl.TEXTURE_2D );
 
     var err = gl.getError();
