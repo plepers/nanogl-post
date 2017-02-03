@@ -2,7 +2,7 @@
 // effect need scene's depth texture
 BaseEffect.NEED_DEPTH  = 1<<1;
 // effect need linear sampler for input color
-BaseEffect.NEED_LINEAR = 1<<1;
+BaseEffect.NEED_LINEAR = 1<<2;
 
 
 function BaseEffect(){
