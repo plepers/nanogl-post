@@ -39,19 +39,51 @@ Bloom.prototype.init = function( precode, code ) {
   var gl = this.post.gl;
 
   var float_texture_ext = gl.getExtension('OES_texture_float');
-  var halfFloat         = gl.getExtension("OES_texture_half_float");
+  var halfFloat         = gl.getExtension('OES_texture_half_float');
+  var color_buffer_float= gl.getExtension('EXT_color_buffer_float');
   var maxFuniforms      = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
-  var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
-  if( halfFloat ){
-    types.unshift( halfFloat.HALF_FLOAT_OES );
+
+  var configs = [{
+    type   : gl.FLOAT, 
+    format : gl.RGB,
+    internal : gl.RGB
+  },
+  {
+    type   : gl.UNSIGNED_BYTE, 
+    format : gl.RGB,
+    internal : gl.RGB
+  }]
+
+  if( color_buffer_float ){
+    configs.unshift( {
+      type   : gl.FLOAT, 
+      format : gl.RGB,
+      internal : gl.R11F_G11F_B10F
+    } );
   }
+
+
+  if( halfFloat ){
+    configs.unshift( {
+      type   : halfFloat.HALF_FLOAT_OES, 
+      format : gl.RGB,
+      internal : gl.RGB16F
+    } );
+
+    configs.unshift( {
+      type   : halfFloat.HALF_FLOAT_OES, 
+      format : gl.RGB,
+      internal : gl.RGB
+    } );
+  }
+
+
 
   for (var i = 0; i<2; ++i) {
 
     this.bloomTargets[i] = new Fbo( gl, {
-      type    : types,
-      format  : gl.RGB
+      configs  : configs
     });
 
     this.bloomTargets[i].resize( TEX_SIZE, TEX_SIZE );

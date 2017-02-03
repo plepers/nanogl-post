@@ -29,6 +29,7 @@ function Post( gl, mipmap ){
   this.halfFloat           = gl.getExtension("OES_texture_half_float");
   this.float_texture_ext_l = gl.getExtension("OES_texture_half_float_linear");
   this.halfFloat_l         = gl.getExtension("OES_texture_float_linear");
+  this.color_buffer_float  = gl.getExtension('EXT_color_buffer_float');
 
   this.hasDepthTexture = false;
 
@@ -87,16 +88,46 @@ Post.prototype = {
     var gl = this.gl;
 
     var ctxAttribs        = gl.getContextAttributes();
-    var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
+
+
+    var configs = [{
+      type   : gl.FLOAT, 
+      format : gl.RGB,
+      internal : gl.RGB
+    },
+    {
+      type   : gl.UNSIGNED_BYTE, 
+      format : gl.RGB,
+      internal : gl.RGB
+    }]
+
+    if( this.color_buffer_float ){
+      configs.unshift( {
+        type   : gl.FLOAT, 
+        format : gl.RGB,
+        internal : gl.R11F_G11F_B10F
+      } );
+    }
+
+    
     if( this.halfFloat ){
-      types.unshift( this.halfFloat.HALF_FLOAT_OES );
+      configs.unshift( {
+        type   : this.halfFloat.HALF_FLOAT_OES, 
+        format : gl.RGB,
+        internal : gl.RGB16F
+      } );
+
+      configs.unshift( {
+        type   : this.halfFloat.HALF_FLOAT_OES, 
+        format : gl.RGB,
+        internal : gl.RGB
+      } );
     }
 
     var fbo = Fbo.create( gl, {
       depth   : ctxAttribs.depth,
       stencil : ctxAttribs.stencil,
-      type    : types,
-      format  : ctxAttribs.alpha ? gl.RGBA : gl.RGB
+      configs : configs
     });
 
     // force attachment allocation
