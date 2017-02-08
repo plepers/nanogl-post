@@ -7,8 +7,8 @@ var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 var BaseEffect    = require( './base-effect' );
 
 
-var prc_frag = require( '../glsl/templates/bloom_process.frag.js' )();
-var prc_vert = require( '../glsl/templates/main.vert.js' )();
+var prc_frag = require( '../glsl/templates/bloom_process.frag' )();
+var prc_vert = require( '../glsl/templates/main.vert' )();
 
 
 var TEX_SIZE = 256;
@@ -25,8 +25,8 @@ function Bloom( color, size ){
   this.bloomSamples = 0;
   this.bloomKernel = null;
 
-  this._preCode = require( '../glsl/templates/bloom_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/bloom.frag.js' )();
+  this._preCode = require( '../glsl/templates/bloom_pre.frag' )();
+  this._code    = require( '../glsl/templates/bloom.frag' )();
 }
 
 
@@ -44,33 +44,28 @@ Bloom.prototype.init = function( precode, code ) {
   var maxFuniforms      = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
 
-  var configs = [{
+  var configs = [
+  {
     type   : gl.FLOAT, 
     format : gl.RGB,
     internal : gl.RGB
-  },
-  {
+  },{
     type   : gl.UNSIGNED_BYTE, 
     format : gl.RGB,
     internal : gl.RGB
   }]
 
-  if( color_buffer_float ){
+
+  if( gl.UNSIGNED_INT_2_10_10_10_REV === 0x8368){
     configs.unshift( {
-      type   : gl.FLOAT, 
-      format : gl.RGB,
-      internal : gl.R11F_G11F_B10F
+      type   : gl.UNSIGNED_INT_2_10_10_10_REV, 
+      format : gl.RGBA,
+      internal : gl.RGB10_A2
     } );
   }
 
 
   if( halfFloat ){
-    configs.unshift( {
-      type   : halfFloat.HALF_FLOAT_OES, 
-      format : gl.RGB,
-      internal : gl.RGB16F
-    } );
-
     configs.unshift( {
       type   : halfFloat.HALF_FLOAT_OES, 
       format : gl.RGB,

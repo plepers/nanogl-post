@@ -4,7 +4,7 @@ var BaseEffect = require( './base-effect' );
 
 function TBCalibration(){
   BaseEffect.call( this );
-  this._code    = require( '../glsl/templates/tb-calibration.frag.js' )();
+  this._code    = require( '../glsl/templates/tb-calibration.frag' )();
 }
 
 

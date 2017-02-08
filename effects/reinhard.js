@@ -5,7 +5,7 @@ var BaseEffect = require( './base-effect' );
 function Reinhard( amount ){
   BaseEffect.call( this );
 
-  this._code    = require( '../glsl/templates/tm_reinhard.frag.js' )();
+  this._code    = require( '../glsl/templates/tm_reinhard.frag' )();
 }
 
 

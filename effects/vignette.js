@@ -9,8 +9,8 @@ function Vignette( color, strength, curve ){
   this.curve     = curve;
   this.strength  = strength;
 
-  this._preCode = require( '../glsl/templates/vignette_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/vignette.frag.js' )();
+  this._preCode = require( '../glsl/templates/vignette_pre.frag' )();
+  this._code    = require( '../glsl/templates/vignette.frag' )();
 }
 
 

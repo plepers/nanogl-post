@@ -8,8 +8,8 @@ function Saturation( amount ){
   this.tint          = [1, 1, 1];
   this.amount        = amount;
 
-  this._preCode = require( '../glsl/templates/saturation_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/saturation.frag.js' )();
+  this._preCode = require( '../glsl/templates/saturation_pre.frag' )();
+  this._code    = require( '../glsl/templates/saturation.frag' )();
 }
 
 

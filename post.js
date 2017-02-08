@@ -3,8 +3,8 @@ var Program       = require( 'nanogl/program' );
 var Fbo           = require( 'nanogl-depth-texture/fbo' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 
-var main_frag = require( './glsl/templates/main.frag.js' );
-var main_vert = require( './glsl/templates/main.vert.js' );
+var main_frag = require( './glsl/templates/main.frag' );
+var main_vert = require( './glsl/templates/main.vert' );
 
 var Effect    = require( './effects/base-effect' );
 
@@ -90,32 +90,40 @@ Post.prototype = {
     var ctxAttribs        = gl.getContextAttributes();
 
 
-    var configs = [{
+    var configs = [
+    {
       type   : gl.FLOAT, 
       format : gl.RGB,
       internal : gl.RGB
-    },
-    {
+    },{
       type   : gl.UNSIGNED_BYTE, 
       format : gl.RGB,
       internal : gl.RGB
     }]
 
-    if( this.color_buffer_float ){
+
+    if( gl.UNSIGNED_INT_2_10_10_10_REV === 0x8368){
+      // webgl2
+      // TODO Add option for 16f VS 10fixed
+
+      // if prefer half float
       configs.unshift( {
-        type   : gl.FLOAT, 
-        format : gl.RGB,
-        internal : gl.R11F_G11F_B10F
+        type   : gl.HALF_FLOAT, 
+        format : gl.RGBA,
+        internal : gl.RGBA16F
       } );
-    }
+
+      // if prefer fixed 10bit
+
+      // configs.unshift( {
+      //   type   : gl.UNSIGNED_INT_2_10_10_10_REV, 
+      //   format : gl.RGBA,
+      //   internal : gl.RGB10_A2
+      // } );
+    }    
 
     
     if( this.halfFloat ){
-      configs.unshift( {
-        type   : this.halfFloat.HALF_FLOAT_OES, 
-        format : gl.RGB,
-        internal : gl.RGB16F
-      } );
 
       configs.unshift( {
         type   : this.halfFloat.HALF_FLOAT_OES, 
@@ -374,7 +382,12 @@ Post.prototype = {
 
 
     var depthTex = this._needDepth() && this.mainFbo.attachment.isDepthTexture();
-    var defs = '\n';
+    var defs = '';
+
+    if( this.gl.SIGNALED ) {// webgl2
+      defs += '#version 300 es\n';
+    }
+    
     defs += 'precision highp float;\n';
     defs += '#define NEED_DEPTH '    +(0|this._needDepth())+'\n';
     defs += '#define TEXTURE_DEPTH ' +(0|depthTex)       +'\n';

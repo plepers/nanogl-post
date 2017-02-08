@@ -5,7 +5,7 @@ var BaseEffect = require( './base-effect' );
 function Hejl( amount ){
   BaseEffect.call( this );
 
-  this._code    = require( '../glsl/templates/tm_hejl.frag.js' )();
+  this._code    = require( '../glsl/templates/tm_hejl.frag' )();
 }
 
 

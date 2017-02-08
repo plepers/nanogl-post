@@ -4,7 +4,7 @@ var BaseEffect = require( './base-effect' );
 
 function Fetch(){
   BaseEffect.call( this );
-  this._code    = require( '../glsl/templates/fetch.frag.js' )();
+  this._code    = require( '../glsl/templates/fetch.frag' )();
 }
 
 

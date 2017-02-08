@@ -41,7 +41,7 @@
   InterpolateDof( c, small, med.rgb, large, coc );
 
   // c *= 0.000001;
-  // c += nearCoc;
+  // c += large.rgb;
 
 }
 

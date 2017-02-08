@@ -7,22 +7,23 @@
 var Texture       = require( 'nanogl/texture' );
 var Program       = require( 'nanogl/program' );
 var Fbo           = require( 'nanogl/fbo' );
+var Sampler       = require( 'nanogl/sampler' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 var BaseEffect    = require( './base-effect' );
 var vec3          = require( 'gl-matrix/src/gl-matrix/vec3')
 
 
-var ds_frag   = require( '../glsl/templates/dof_downsample.frag.js' )();
-var ds_vert   = require( '../glsl/templates/dof_downsample.vert.js'  )();
+var ds_frag   = require( '../glsl/templates/dof_downsample.frag' )();
+var ds_vert   = require( '../glsl/templates/dof_downsample.vert'  )();
 
-var blur_frag = require( '../glsl/templates/dof_blur.frag.js' )();
-var blur_vert = require( '../glsl/templates/main.vert.js' )();
+var blur_frag = require( '../glsl/templates/dof_blur.frag' )();
+var blur_vert = require( '../glsl/templates/main.vert' )();
 
-var coc_frag  = require( '../glsl/templates/dof_near_coc.frag.js' )();
-var coc_vert  = require( '../glsl/templates/dof_near_coc.vert.js'  )();
+var coc_frag  = require( '../glsl/templates/dof_near_coc.frag' )();
+var coc_vert  = require( '../glsl/templates/dof_near_coc.vert'  )();
 
-var b3x3_frag = require( '../glsl/templates/dof_blur_3x3.frag.js' )();
-var b3x3_vert = require( '../glsl/templates/dof_blur_3x3.vert.js'  )();
+var b3x3_frag = require( '../glsl/templates/dof_blur_3x3.frag' )();
+var b3x3_vert = require( '../glsl/templates/dof_blur_3x3.vert'  )();
 
 
 var V2  = new Float32Array(2);
@@ -64,8 +65,10 @@ function Dof( camera ){
   this.prgCoc   = null;
   this.prgMed   = null;
 
-  this._preCode = require( '../glsl/templates/dof_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/dof.frag.js' )();
+  this._preCode = require( '../glsl/templates/dof_pre.frag' )();
+  this._code    = require( '../glsl/templates/dof.frag' )();
+
+
 }
 
 
@@ -116,6 +119,13 @@ Dof.prototype.init = function( precode, code ) {
 
   this.prgBlur = new Program( gl );
   this.prgBlur.compile( blur_vert, blur_frag, defs );
+
+
+  if( gl.TEXTURE_COMPARE_MODE ) {
+    this.depthSampler = new Sampler( gl )
+    gl.samplerParameteri( this.depthSampler.id, gl.TEXTURE_COMPARE_MODE, gl.NONE );
+  }
+  
 }
 
 
@@ -221,11 +231,19 @@ Dof.prototype.preRender = function() {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
   prg.use();
-  prg.tInput(  this.post.mainFbo.color );
-  prg.tDepth(  this.post.mainFbo.attachment.buffer );
+  
+  this.post.mainFbo.color.bind( 0 )
+  prg.tInput( 0 );
+
+  this.post.mainFbo.attachment.buffer.bind( 1 )
+  prg.tDepth( 1 );
+
   prg.uDofEq          ( this.getNearEq() );
   prg.uInvTargetSize ( 1/this.post.bufferWidth, 1/this.post.bufferHeight );
+
+  // this.depthSampler.bind( 1 )
   this.post.fillScreen( this.prgDS );
+  // gl.bindSampler( 1 , null );
 
 
   //                Blur

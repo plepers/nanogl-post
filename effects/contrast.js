@@ -14,8 +14,8 @@ function Contrast( contrast, brightness, bias ){
   this.biasTint        = [1,1,1];
 
 
-  this._preCode = require( '../glsl/templates/contrast_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/contrast.frag.js' )();
+  this._preCode = require( '../glsl/templates/contrast_pre.frag' )();
+  this._code    = require( '../glsl/templates/contrast.frag' )();
 }
 
 

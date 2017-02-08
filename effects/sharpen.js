@@ -8,8 +8,8 @@ function Sharpen( amount, limit ){
   this.amount = amount;
   this.limit  = limit;
 
-  this._preCode = require( '../glsl/templates/sharpen_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/sharpen.frag.js' )();
+  this._preCode = require( '../glsl/templates/sharpen_pre.frag' )();
+  this._code    = require( '../glsl/templates/sharpen.frag' )();
 }
 
 
@@ -30,8 +30,9 @@ Sharpen.prototype.setupProgram = function( prg ) {
       bw = this.post.bufferWidth ,
       bh = this.post.bufferHeight;
 
-
-  prg.uSharpenKernel( 1/bw, 0, 0, 1/bh );
+  // not needed in glsl300
+  if( prg.uSharpenKernel )
+    prg.uSharpenKernel( 1/bw, 0, 0, 1/bh );
 
   prg.uSharpness(
       a,
