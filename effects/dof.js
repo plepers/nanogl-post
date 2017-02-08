@@ -137,11 +137,13 @@ Dof.prototype.resize = function() {
   var bw = this.post.bufferWidth  / DOWNSCALE;
   var bh = this.post.bufferHeight / DOWNSCALE;
 
-  this.fboDS   .resize( bw, bh );
-  this.fboCoc  .resize( bw, bh );
-  this.fboMed  .resize( bw, bh );
-  this.fboBlurH.resize( bw, bh );
-  this.fboBlurV.resize( bw, bh );
+  if( bw > 1 && bh > 1 ){
+    this.fboDS   .resize( bw, bh );
+    this.fboCoc  .resize( bw, bh );
+    this.fboMed  .resize( bw, bh );
+    this.fboBlurH.resize( bw, bh );
+    this.fboBlurV.resize( bw, bh );
+  }
 }
 
 
