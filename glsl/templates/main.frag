@@ -1,7 +1,17 @@
 
+
+#if __VERSION__ == 300
+  #define IN in
+  out vec4 FragColor;
+  #define texture2D(a,b) texture( a, b )
+#else
+  #define IN varying
+  #define FragColor gl_FragColor
+#endif
+
 uniform sampler2D tInput;
-varying vec2 vTexCoordVP;
-varying vec2 vTexCoordFull;
+IN vec2 vTexCoordVP;
+IN vec2 vTexCoordFull;
 
 #if NEED_DEPTH
   uniform sampler2D tDepth;
@@ -53,7 +63,7 @@ void main(void){
 
   {{@code}}
 
-  gl_FragColor.xyz=c;
-  gl_FragColor.w=1.0;
+  FragColor.xyz=c;
+  FragColor.w=1.0;
 
 }

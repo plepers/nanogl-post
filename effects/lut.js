@@ -15,8 +15,8 @@ function LUT( lut ){
   this._lutTex     = null;
   this._invalidTex = true;
   
-  this._preCode = require( '../glsl/templates/LUT_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/LUT.frag.js' )();
+  this._preCode = require( '../glsl/templates/LUT_pre.frag' )();
+  this._code    = require( '../glsl/templates/LUT.frag' )();
 }
 
 

@@ -7,8 +7,8 @@ var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 var BaseEffect    = require( './base-effect' );
 
 
-var prc_frag = require( '../glsl/templates/bloom_process.frag.js' )();
-var prc_vert = require( '../glsl/templates/main.vert.js' )();
+var prc_frag = require( '../glsl/templates/bloom_process.frag' )();
+var prc_vert = require( '../glsl/templates/main.vert' )();
 
 
 var TEX_SIZE = 256;
@@ -25,8 +25,8 @@ function Bloom( color, size ){
   this.bloomSamples = 0;
   this.bloomKernel = null;
 
-  this._preCode = require( '../glsl/templates/bloom_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/bloom.frag.js' )();
+  this._preCode = require( '../glsl/templates/bloom_pre.frag' )();
+  this._code    = require( '../glsl/templates/bloom.frag' )();
 }
 
 
@@ -39,19 +39,46 @@ Bloom.prototype.init = function( precode, code ) {
   var gl = this.post.gl;
 
   var float_texture_ext = gl.getExtension('OES_texture_float');
-  var halfFloat         = gl.getExtension("OES_texture_half_float");
+  var halfFloat         = gl.getExtension('OES_texture_half_float');
+  var color_buffer_float= gl.getExtension('EXT_color_buffer_float');
   var maxFuniforms      = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
-  var types =  [ gl.FLOAT, gl.UNSIGNED_BYTE ];
-  if( halfFloat ){
-    types.unshift( halfFloat.HALF_FLOAT_OES );
+
+  var configs = [
+  {
+    type   : gl.FLOAT, 
+    format : gl.RGB,
+    internal : gl.RGB
+  },{
+    type   : gl.UNSIGNED_BYTE, 
+    format : gl.RGB,
+    internal : gl.RGB
+  }]
+
+
+  if( gl.UNSIGNED_INT_2_10_10_10_REV === 0x8368){
+    configs.unshift( {
+      type   : gl.UNSIGNED_INT_2_10_10_10_REV, 
+      format : gl.RGBA,
+      internal : gl.RGB10_A2
+    } );
   }
+
+
+  if( halfFloat ){
+    configs.unshift( {
+      type   : halfFloat.HALF_FLOAT_OES, 
+      format : gl.RGB,
+      internal : gl.RGB
+    } );
+  }
+
+
 
   for (var i = 0; i<2; ++i) {
 
     this.bloomTargets[i] = new Fbo( gl, {
-      type    : types,
-      format  : gl.RGB
+      configs  : configs
     });
 
     this.bloomTargets[i].resize( TEX_SIZE, TEX_SIZE );

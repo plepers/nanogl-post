@@ -1,9 +1,18 @@
 precision highp float;
 
-attribute vec2 aTexCoord0;
+#if __VERSION__ == 300
+  #define IN in
+  #define OUT out
+#else
+  #define IN attribute
+  #define OUT varying
+#endif
 
-varying vec2 vTexCoordVP;
-varying vec2 vTexCoordFull;
+
+IN vec2 aTexCoord0;
+
+OUT vec2 vTexCoordVP;
+OUT vec2 vTexCoordFull;
 
 uniform vec2 uViewportScale;
 

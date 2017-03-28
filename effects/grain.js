@@ -30,8 +30,8 @@ function Grain( amount, sharpness ){
 
   this._noiseTex = null;
   
-  this._preCode = require( '../glsl/templates/grain_pre.frag.js' )();
-  this._code    = require( '../glsl/templates/grain.frag.js' )();
+  this._preCode = require( '../glsl/templates/grain_pre.frag' )();
+  this._code    = require( '../glsl/templates/grain.frag' )();
 }
 
 

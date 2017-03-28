@@ -1,6 +1,6 @@
 {
   "name": "nanogl-post",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "post processing for nanogl",
   "main": "post.js",
   "scripts": {
@@ -43,9 +43,24 @@
     "karma-safari-launcher": "0.1.1",
     "karma-sauce-launcher": "0.3.0",
     "mocha": "2.3.4",
+    "nanogl-template": "^1.0.3",
     "replace-ext": "0.0.1",
     "sinon": "1.17.2",
     "string-template": "1.0.0",
     "uglify-js": "2.6.1"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "nanogl-template",
+        {
+          "extensions": [
+            ".vert",
+            ".frag",
+            ".glsl"
+          ]
+        }
+      ]
+    ]
   }
 }
