@@ -79,11 +79,12 @@ Dof.prototype.constructor = Dof;
 
 Dof.prototype.genFbo = function( precode, code ) {
   var gl = this.post.gl;
-  var res = new Fbo( gl, {
-    format  : gl.RGBA
-  });
-  res.color.setFilter( true, false, false );
-  res.color.clamp();
+  var res = new Fbo( gl );
+  res.bind()
+  var color = res.attachColor( gl.RGBA ).target;
+  color.bind()
+  color.setFilter( true, false, false );
+  color.clamp();
   return res;
 };
 
@@ -91,7 +92,7 @@ Dof.prototype.genFbo = function( precode, code ) {
 Dof.prototype.init = function( precode, code ) {
   var gl = this.post.gl;
 
-  this._available = this.post.mainFbo.attachment.isDepthTexture();
+  this._available = this.post.hasDepthTexture;
 
   if( ! this._available ){
     return;
@@ -232,10 +233,10 @@ Dof.prototype.preRender = function() {
   fbo.clear();
   prg.use();
   
-  this.post.mainFbo.color.bind( 0 )
+  this.post.mainColor.bind( 0 )
   prg.tInput( 0 );
 
-  this.post.mainFbo.attachment.buffer.bind( 1 )
+  this.post.mainFbo.getDepth().bind( 1 )
   prg.tDepth( 1 );
 
   prg.uDofEq          ( this.getNearEq() );
@@ -258,7 +259,7 @@ Dof.prototype.preRender = function() {
   fbo = this.fboBlurH;
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
-  prg.tInput( this.fboDS.color );
+  prg.tInput( this.fboDS.getColor() );
   prg.uKernel( this.blurKernel );
   this.post.fillScreen( prg );
 
@@ -268,7 +269,7 @@ Dof.prototype.preRender = function() {
   fbo = this.fboBlurV;
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
-  prg.tInput( this.fboBlurH.color );
+  prg.tInput( this.fboBlurH.getColor() );
   prg.uKernel( this.blurKernel );
   this.post.fillScreen( prg );
 
@@ -282,8 +283,8 @@ Dof.prototype.preRender = function() {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
   prg.use();
-  prg.tDownsample ( this.fboDS.color    );
-  prg.tBlurred    ( this.fboBlurV.color );
+  prg.tDownsample ( this.fboDS.getColor()    );
+  prg.tBlurred    ( this.fboBlurV.getColor() );
   this.post.fillScreen( prg );
 
 
@@ -296,7 +297,7 @@ Dof.prototype.preRender = function() {
   gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo );
   fbo.clear();
   prg.use();
-  prg.tCoc ( this.fboCoc.color );
+  prg.tCoc ( this.fboCoc.getColor() );
   prg.uInvTargetSize ( DOWNSCALE / this.post.bufferWidth, DOWNSCALE / this.post.bufferHeight );
   this.post.fillScreen( prg );
 
@@ -308,8 +309,8 @@ Dof.prototype.setupProgram = function( prg ) {
     return;
   }
 
-  prg.tDofMedBlur         ( this.fboMed.color );
-  prg.tDofBlur            ( this.fboBlurV.color );
+  prg.tDofMedBlur         ( this.fboMed.getColor() );
+  prg.tDofBlur            ( this.fboBlurV.getColor() );
 
   prg.uDofInvTargetSize   ( 1/this.post.bufferWidth, 1/this.post.bufferHeight );
 

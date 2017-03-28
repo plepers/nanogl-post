@@ -3,6 +3,7 @@
 var Texture       = require( 'nanogl/texture' );
 var Program       = require( 'nanogl/program' );
 var Fbo           = require( 'nanogl/fbo' );
+var PixelFormats   = require( 'nanogl-pf' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
 var BaseEffect    = require( './base-effect' );
 
@@ -38,53 +39,34 @@ Bloom.prototype.constructor = Bloom;
 Bloom.prototype.init = function( precode, code ) {
   var gl = this.post.gl;
 
-  var float_texture_ext = gl.getExtension('OES_texture_float');
-  var halfFloat         = gl.getExtension('OES_texture_half_float');
-  var color_buffer_float= gl.getExtension('EXT_color_buffer_float');
   var maxFuniforms      = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
 
-  var configs = [
-  {
-    type   : gl.FLOAT, 
-    format : gl.RGB,
-    internal : gl.RGB
-  },{
-    type   : gl.UNSIGNED_BYTE, 
-    format : gl.RGB,
-    internal : gl.RGB
-  }]
+  var pf = PixelFormats( gl );
 
+  var configs = [];
 
-  if( gl.UNSIGNED_INT_2_10_10_10_REV === 0x8368){
-    configs.unshift( {
-      type   : gl.UNSIGNED_INT_2_10_10_10_REV, 
-      format : gl.RGBA,
-      internal : gl.RGB10_A2
-    } );
-  }
+  configs = [ 
+    pf.RGB16F ,
+    pf.RGBA16F,
+    pf.RGB32F ,
+    pf.RGBA32F,
+    pf.RGB8   
+  ];
 
-
-  if( halfFloat ){
-    configs.unshift( {
-      type   : halfFloat.HALF_FLOAT_OES, 
-      format : gl.RGB,
-      internal : gl.RGB
-    } );
-  }
-
-
+  var cfg = pf.getWritableFormat( configs );
 
   for (var i = 0; i<2; ++i) {
 
-    this.bloomTargets[i] = new Fbo( gl, {
-      configs  : configs
-    });
+    this.bloomTargets[i] = new Fbo( gl )
+    this.bloomTargets[i].bind();
+    this.bloomTargets[i].attachColor( cfg.format, cfg.type, cfg.internal );
 
     this.bloomTargets[i].resize( TEX_SIZE, TEX_SIZE );
 
-    this.bloomTargets[i].color.setFilter( true, false, false );
-    this.bloomTargets[i].color.clamp();
+    var color = this.bloomTargets[i].getColor();
+    color.setFilter( true, false, false );
+    color.clamp();
 
   }
 
@@ -131,17 +113,19 @@ Bloom.prototype.preRender = function() {
   this.computeKernel();
 
   this.bloomTargets[0].bind();
+  this.bloomTargets[0].defaultViewport();
   this.bloomTargets[0].clear();
   this.prcPrg.use();
-  this.prcPrg.tInput( this.post.mainFbo.color );
+  this.prcPrg.tInput( this.post.mainColor );
   this.prcPrg.uKernel( this.bloomKernel );
   this.post.fillScreen( this.prcPrg );
 
   this.transposeKernel();
 
   this.bloomTargets[1].bind();
+  this.bloomTargets[1].defaultViewport();
   this.bloomTargets[1].clear();
-  this.prcPrg.tInput( this.bloomTargets[0].color );
+  this.prcPrg.tInput( this.bloomTargets[0].getColor() );
   this.prcPrg.uKernel( this.bloomKernel );
   this.post.fillScreen( this.prcPrg, true );
 
@@ -158,7 +142,7 @@ Bloom.prototype.setupProgram = function( prg ) {
     c[2]
   );
 
-  prg.tBloom( this.bloomTargets[1].color );
+  prg.tBloom( this.bloomTargets[1].getColor() );
 
 }
 
