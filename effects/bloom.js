@@ -42,7 +42,7 @@ Bloom.prototype.init = function( precode, code ) {
   var maxFuniforms      = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
 
 
-  var pf = PixelFormats( gl );
+  var pf = PixelFormats.getInstance( gl );
 
   var configs = [];
 
@@ -54,7 +54,7 @@ Bloom.prototype.init = function( precode, code ) {
     pf.RGB8   
   ];
 
-  var cfg = pf.getWritableFormat( configs );
+  var cfg = pf.getRenderableFormat( configs );
 
   for (var i = 0; i<2; ++i) {
 

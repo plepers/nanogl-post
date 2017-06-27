@@ -34,7 +34,7 @@ function Post( gl, mipmap ){
   this.color_buffer_float  = gl.getExtension('EXT_color_buffer_float');
 
   
-  this.hasDepthTexture = PixelFormats(gl).hasDepthTexture();
+  this.hasDepthTexture = PixelFormats.getInstance(gl).hasDepthTexture();
 
 
 
@@ -91,7 +91,7 @@ Post.prototype = {
 
   genFbo : function(){
     var gl = this.gl;
-    var pf = PixelFormats(gl);
+    var pf = PixelFormats.getInstance(gl);
 
     var ctxAttribs        = gl.getContextAttributes();
 
@@ -122,7 +122,7 @@ Post.prototype = {
     
 
     
-    var cfg = PixelFormats(gl).getWritableFormat( configs );
+    var cfg = pf.getRenderableFormat( configs );
 
     var fbo = new Fbo( gl );
     fbo.bind();
@@ -269,7 +269,7 @@ Post.prototype = {
     }
 
     gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
-    gl.clearColor( .0, .0, .0, 1.0 );
+    // gl.clearColor( .0, .0, .0, 1.0 );
     // just clear, main fbo or screen one
     this.mainFbo.clear();
 
