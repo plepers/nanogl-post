@@ -1,6 +1,6 @@
 {
   "name": "nanogl-post",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "post processing for nanogl",
   "main": "post.js",
   "scripts": {
@@ -26,9 +26,10 @@
   "homepage": "https://github.com/plepers/nanogl-post#readme",
   "dependencies": {
     "gl-matrix": "2.3.1",
-    "nanogl": "^0.3.1",
-    "nanogl-depth-texture": "^0.1.4"
+    "nanogl": "^1.0.0",
+    "nanogl-pf": "0.1.1"
   },
+  
   "devDependencies": {
     "browserify": "^13.0.1",
     "expect.js": "0.3.1",

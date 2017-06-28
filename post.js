@@ -1,7 +1,9 @@
 
 var Program       = require( 'nanogl/program' );
-var Fbo           = require( 'nanogl-depth-texture/fbo' );
+var Texture       = require( 'nanogl/texture' );
+var Fbo           = require( 'nanogl/fbo' );
 var GLArrayBuffer = require( 'nanogl/arraybuffer' );
+var PixelFormats  = require( 'nanogl-pf' );
 
 var main_frag = require( './glsl/templates/main.frag' );
 var main_vert = require( './glsl/templates/main.vert' );
@@ -31,17 +33,19 @@ function Post( gl, mipmap ){
   this.halfFloat_l         = gl.getExtension("OES_texture_float_linear");
   this.color_buffer_float  = gl.getExtension('EXT_color_buffer_float');
 
-  this.hasDepthTexture = false;
+  
+  this.hasDepthTexture = PixelFormats.getInstance(gl).hasDepthTexture();
 
 
 
   this.mainFbo = this.genFbo();
+  this.mainColor = this.mainFbo.getColor();
 
 
   // test fbo's mipmaping capability
   if( this.mipmap ){
 
-    this.mainFbo.color.bind()
+    this.mainColor.bind()
     gl.generateMipmap( gl.TEXTURE_2D );
 
     var err = gl.getError();
@@ -49,11 +53,12 @@ function Post( gl, mipmap ){
       this.mipmap = false;
       // this fbo is now fu*** up, need to create a fresh one
       this.mainFbo.dispose()
-      this.mainFbo = this.genFbo();
+      this.mainFbo   = this.genFbo();
+      this.mainColor = this.mainFbo.getColor();
     }
   }
 
-  this.mainFbo.color.setFilter( false, this.mipmap, false )
+  this.mainColor.setFilter( false, this.mipmap, false )
 
 
   this.prg = new Program( gl );
@@ -86,67 +91,61 @@ Post.prototype = {
 
   genFbo : function(){
     var gl = this.gl;
+    var pf = PixelFormats.getInstance(gl);
 
     var ctxAttribs        = gl.getContextAttributes();
 
 
-    var configs = [
-    {
-      type   : gl.FLOAT, 
-      format : gl.RGB,
-      internal : gl.RGB
-    },{
-      type   : gl.UNSIGNED_BYTE, 
-      format : gl.RGB,
-      internal : gl.RGB
-    }]
+
+    var configs = []
+
+    configs = [ 
+      pf.RGB16F ,
+      pf.RGBA16F,
+      pf.RGB32F ,
+      pf.RGBA32F,
+      pf.RGB8   
+    ];
 
 
     if( gl.UNSIGNED_INT_2_10_10_10_REV === 0x8368){
+      
       // webgl2
       // TODO Add option for 16f VS 10fixed
 
-      // if prefer half float
-      configs.unshift( {
-        type   : gl.HALF_FLOAT, 
-        format : gl.RGBA,
-        internal : gl.RGBA16F
-      } );
+      // configs.push( pf.A2B10G10R10  );
 
-      // if prefer fixed 10bit
 
-      // configs.unshift( {
-      //   type   : gl.UNSIGNED_INT_2_10_10_10_REV, 
-      //   format : gl.RGBA,
-      //   internal : gl.RGB10_A2
-      // } );
+
     }    
 
     
-    if( this.halfFloat ){
 
-      configs.unshift( {
-        type   : this.halfFloat.HALF_FLOAT_OES, 
-        format : gl.RGB,
-        internal : gl.RGB
-      } );
-    }
+    
+    var cfg = pf.getRenderableFormat( configs );
 
-    var fbo = Fbo.create( gl, {
-      depth   : ctxAttribs.depth,
-      stencil : ctxAttribs.stencil,
-      configs : configs
-    });
+    var fbo = new Fbo( gl );
+    fbo.bind();
+    fbo.attachColor( cfg.format, cfg.type, cfg.internal  );
+
+
+    // depth/stencil
+
+    // if ! ctxAttribs.depth no texture
+
+    fbo.attachDepth( ctxAttribs.depth, ctxAttribs.stencil, this.hasDepthTexture );
 
     // force attachment allocation
     fbo.resize( 4, 4 );
 
-    fbo.color.bind();
-    fbo.color.clamp()
+
+    var color = fbo.getColor();
+    color.bind();
+    color.clamp()
 
 
-    if( this.hasDepthTexture = fbo.attachment.isDepthTexture() ){
-      var depth = fbo.attachment.buffer
+    if( this.hasDepthTexture ){
+      var depth = fbo.getDepth()
       depth.bind();
       depth.clamp();
       depth.setFilter( false, false, false );
@@ -156,17 +155,17 @@ Post.prototype = {
   },
 
 
-  genDepthFbo : function(){
-    // depth only FBO
-    var fbo = Fbo.create( this.gl, {
-      depth : true,
-      format : this.gl.RGB
-    });
-    fbo.color.bind();
-    fbo.color.setFilter( false, false, false );
-    fbo.color.clamp()
-     return fbo;
-  },
+  // genDepthFbo : function(){
+  //   // depth only FBO
+  //   var fbo = Fbo.create( this.gl, {
+  //     depth : true,
+  //     format : this.gl.RGB
+  //   });
+  //   fbo.color.bind();
+  //   fbo.color.setFilter( false, false, false );
+  //   fbo.color.clamp()
+  //    return fbo;
+  // },
 
 
   add : function( effect ){
@@ -270,7 +269,7 @@ Post.prototype = {
     }
 
     gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
-    gl.clearColor( .0, .0, .0, 1.0 );
+    // gl.clearColor( .0, .0, .0, 1.0 );
     // just clear, main fbo or screen one
     this.mainFbo.clear();
 
@@ -290,7 +289,7 @@ Post.prototype = {
     var gl = this.gl;
 
     // mipmap mainFbo here
-    this.mainFbo.color.bind();
+    this.mainColor.bind();
     if( this.mipmap ){
       gl.generateMipmap( gl.TEXTURE_2D );
     }
@@ -328,12 +327,12 @@ Post.prototype = {
 
 
 
-    this.prg.tInput( this.mainFbo.color );
+    this.prg.tInput( this.mainColor );
 
 
     if( this._needDepth() ){
       if( this.hasDepthTexture )
-        this.prg.tDepth( this.mainFbo.attachment.buffer );
+        this.prg.tDepth( this.mainFbo.getDepth() );
       else
         this.prg.tDepth( this.depthFbo.color );
     }
@@ -381,7 +380,7 @@ Post.prototype = {
     var vert = main_vert();
 
 
-    var depthTex = this._needDepth() && this.mainFbo.attachment.isDepthTexture();
+    var depthTex = this._needDepth() && this.hasDepthTexture;
     var defs = '';
 
     if( this.gl.SIGNALED ) {// webgl2
@@ -397,8 +396,8 @@ Post.prototype = {
     this._shaderInvalid = false;
 
 
-    this.mainFbo.color.bind()
-    this.mainFbo.color.setFilter( this._needLinear(), this.mipmap, false );
+    this.mainColor.bind()
+    this.mainColor.setFilter( this._needLinear(), this.mipmap, false );
 
   }
 
