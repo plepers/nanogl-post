@@ -46,6 +46,7 @@ function Dof( camera ){
   this.focusRange = 0;
   this.far = 4
   this.near= 1
+  this.farBlur = .5
 
   this.d0 = .2
   this.d1 = .2
@@ -204,7 +205,7 @@ Dof.prototype.getFarEq = function(){
 
   V3[0] = 1.0/ (dMax-dMin);
   V3[1] = 1.0 - V3[0] * dMax;
-  V3[2] = 1.0;
+  V3[2] = this.farBlur;
 
   return V3;
 };
@@ -365,7 +366,7 @@ Dof.prototype.computeKernel = function( h ) {
     c += density;
 
     kernel[i + o1] = halfOffset + 2.0 * this.blurSamples * delta / bufferSize;
-    kernel[i + o2] = .5 / offsetSize;
+    kernel[i + o2] = ( ( c%2 ===0  ) ? .5 : -.5 ) / offsetSize;
     kernel[i + 2] = density;
   }
 

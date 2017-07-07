@@ -48,6 +48,7 @@
     "replace-ext": "0.0.1",
     "sinon": "1.17.2",
     "string-template": "1.0.0",
+    "nanogl-template": "^1.0.3",
     "uglify-js": "2.6.1"
   },
   "browserify": {
