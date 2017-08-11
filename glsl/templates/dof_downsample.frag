@@ -24,8 +24,12 @@ vec4 getDofCoC( vec4 depth ){
   //   saturate( uDofEq.x    * depth + uDofEq.y    ),
   //   saturate( uDofFarEq.x * depth + uDofFarEq.y )
   // );
+  
 
   return saturate( uDofEq.x    * depth + uDofEq.y    );
+
+  // clamp depth 1 = coco 0
+    //* step( vec4(.001), vec4(1.0)-depth );
 }
 
 void main(void)

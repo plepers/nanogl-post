@@ -10,12 +10,14 @@
   mediump float farCoc;
   mediump float coc;
 
-  small   = GetSmallBlurSample( texCoordVP );
+  small   = GetSmallBlurSample( texCoordVP ) + c*(1.0/17.0);
+
+  
   med     = texture2D( tDofMedBlur, texCoordVP );
   large   = texture2D( tDofBlur   , texCoordVP ).rgb;
   nearCoc = med.a;// * 0.000001;
 
-  // if ( depth > 1.0e6 )
+  // if ( sceneDepth > .999999 )
   // {
   //   coc = nearCoc; // We don't want to blur the sky.
   // }
@@ -30,16 +32,17 @@
   coc = max( nearCoc, farCoc * uDofEqFar.z );
   // coc = nearCoc * step( 0.1, farCoc );
 
-  // if ( sceneDepth > .999999 )
-  // {
-  //    coc = nearCoc; // We don't want to blur the sky.
-  // }
+  sceneDepth = GetSmallBlurDepth( texCoordVP ) + sceneDepth*(1.0/17.0);
+  if ( sceneDepth > .999999 )
+  {
+     coc = nearCoc; // We don't want to blur the sky.
+  }
 
 
   // }
   // vec3 bak = c;
   InterpolateDof( c, small, med.rgb, large, coc );
-
+  // c.rgb = c.rgb * 0.00000001 + coc;
   // c *= 0.000001;
   // c += large.rgb;
 

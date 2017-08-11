@@ -20,6 +20,18 @@ vec3 GetSmallBlurSample( vec2 texCoords )
 }
 
 
+float GetSmallBlurDepth( vec2 texCoords )
+{
+  float sum;
+  const float weight = 4.0 / 17.0;
+  sum  = weight * FETCH_DEPTH( tDepth, texCoords + vec2(+0.5, -1.5) * 2.0 *uDofInvTargetSize );
+  sum += weight * FETCH_DEPTH( tDepth, texCoords + vec2(-1.5, -0.5) * 2.0 *uDofInvTargetSize );
+  sum += weight * FETCH_DEPTH( tDepth, texCoords + vec2(-0.5, +1.5) * 2.0 *uDofInvTargetSize );
+  sum += weight * FETCH_DEPTH( tDepth, texCoords + vec2(+1.5, +0.5) * 2.0 *uDofInvTargetSize );
+  return sum;
+}
+
+
 
 void InterpolateDof( inout vec3 c, mediump vec3 small, mediump vec3 med, mediump vec3 large, mediump float coc )
 {
