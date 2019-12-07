@@ -96,7 +96,7 @@ export default class Bloom extends BaseEffect {
 
     var defs = '\n';
     defs += 'precision highp float;\n';
-    defs += "#define BLOOM_SAMPLES " + this.bloomSamples + '\n';
+    defs += `#define BLOOM_SAMPLES ${this.bloomSamples} \n`;
 
     this.prcPrg = new Program(gl);
     this.prcPrg.compile(prc_vert(), prc_frag(), defs)
@@ -159,7 +159,7 @@ export default class Bloom extends BaseEffect {
 
   setupProgram(prg:Program) {
 
-    var c = this.color;
+    const c = this.color;
 
     prg.uBloomColor(
       c[0],
@@ -205,9 +205,9 @@ export default class Bloom extends BaseEffect {
 
   transposeKernel() {
 
-    var kernel = this.bloomKernel!;
+    const kernel = this.bloomKernel!;
 
-    var ratio = this.post!.renderWidth / this.post!.renderHeight;
+    const ratio = this.post!.renderWidth / this.post!.renderHeight;
 
     for (var sample = 0; sample < this.bloomSamples; ++sample) {
       var i = sample << 2;

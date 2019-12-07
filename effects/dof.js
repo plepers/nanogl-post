@@ -88,8 +88,8 @@ export default class Dof extends BaseEffect {
         if (!this._available) {
             return;
         }
-        var bw = this.post.bufferWidth / DOWNSCALE;
-        var bh = this.post.bufferHeight / DOWNSCALE;
+        const bw = this.post.bufferWidth / DOWNSCALE;
+        const bh = this.post.bufferHeight / DOWNSCALE;
         if (bw > 1 && bh > 1) {
             this.fboDS.resize(bw, bh);
             this.fboCoc.resize(bw, bh);
@@ -202,25 +202,23 @@ export default class Dof extends BaseEffect {
         prg.tDofMedBlur(this.fboMed.getColor(0));
         prg.tDofBlur(this.fboBlurV.getColor(0));
         prg.uDofInvTargetSize(1 / this.post.bufferWidth, 1 / this.post.bufferHeight);
-        var d0, d1, d2;
-        d0 = this.d0,
-            d1 = this.d1,
-            d2 = 1.0 - (d0 + d1);
+        const d0 = this.d0;
+        const d1 = this.d1;
+        const d2 = 1.0 - (d0 + d1);
         prg.uDofLerpScale(-1 / d0, -1 / d1, -1 / d2, 1 / d2);
         prg.uDofLerpBias(1, (1 - d2) / d1, 1 / d2, (d2 - 1) / d2);
         prg.uDofEqFar(this.getFarEq());
     }
     computeKernel(h) {
-        var bw = this.post.bufferWidth / DOWNSCALE;
-        var bh = this.post.bufferHeight / DOWNSCALE;
-        var numSamples = this.blurSamples * 2 + 1;
-        var bufferSize = h ? bw : bh;
-        var offsetSize = h ? bh : bw;
-        var halfOffset = .5 / bufferSize;
-        var kernel = this.blurKernel;
-        var SQRT_PI = Math.sqrt(Math.PI);
-        var o1 = h ? 0 : 1;
-        var o2 = h ? 1 : 0;
+        const bw = this.post.bufferWidth / DOWNSCALE;
+        const bh = this.post.bufferHeight / DOWNSCALE;
+        const numSamples = this.blurSamples * 2 + 1;
+        const bufferSize = h ? bw : bh;
+        const offsetSize = h ? bh : bw;
+        const halfOffset = .5 / bufferSize;
+        const kernel = this.blurKernel;
+        const o1 = h ? 0 : 1;
+        const o2 = h ? 1 : 0;
         for (var c = 0, sample = 0; sample < numSamples; ++sample) {
             var i = sample * 3;
             var delta = 2 * sample / (numSamples - 1) - 1;

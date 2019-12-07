@@ -30,10 +30,10 @@ export default class Sharpen extends BaseEffect {
 
 
   setupProgram( prg : Program ) {
-    var a  = this.amount,
-        l  = this.limit,
-        bw = this.post!.bufferWidth ,
-        bh = this.post!.bufferHeight;
+    const a  = this.amount;
+    const l  = this.limit;
+    const bw = this.post!.bufferWidth ;
+    const bh = this.post!.bufferHeight;
 
     // not needed in glsl300
     if( prg.uSharpenKernel )

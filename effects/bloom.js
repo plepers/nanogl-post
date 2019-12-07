@@ -47,7 +47,7 @@ export default class Bloom extends BaseEffect {
         this.bloomKernel = new Float32Array(this.bloomSamples * 4);
         var defs = '\n';
         defs += 'precision highp float;\n';
-        defs += "#define BLOOM_SAMPLES " + this.bloomSamples + '\n';
+        defs += `#define BLOOM_SAMPLES ${this.bloomSamples} \n`;
         this.prcPrg = new Program(gl);
         this.prcPrg.compile(prc_vert(), prc_frag(), defs);
     }
@@ -86,7 +86,7 @@ export default class Bloom extends BaseEffect {
         post.fillScreen(prg, true);
     }
     setupProgram(prg) {
-        var c = this.color;
+        const c = this.color;
         prg.uBloomColor(c[0], c[1], c[2]);
         prg.tBloom(this.bloomTargets[1].getColor(0));
     }
@@ -109,8 +109,8 @@ export default class Bloom extends BaseEffect {
         }
     }
     transposeKernel() {
-        var kernel = this.bloomKernel;
-        var ratio = this.post.renderWidth / this.post.renderHeight;
+        const kernel = this.bloomKernel;
+        const ratio = this.post.renderWidth / this.post.renderHeight;
         for (var sample = 0; sample < this.bloomSamples; ++sample) {
             var i = sample << 2;
             kernel[i + 1] = kernel[i] * ratio;

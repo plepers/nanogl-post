@@ -170,8 +170,8 @@ export default class Dof extends BaseEffect {
       return;
     }
 
-    var bw = this.post!.bufferWidth / DOWNSCALE;
-    var bh = this.post!.bufferHeight / DOWNSCALE;
+    const bw = this.post!.bufferWidth / DOWNSCALE;
+    const bh = this.post!.bufferHeight / DOWNSCALE;
 
     if (bw > 1 && bh > 1) {
       this.fboDS.resize(bw, bh);
@@ -358,10 +358,9 @@ export default class Dof extends BaseEffect {
     // large blur over distance d2, where d0 + d1 + d2 = 1.
     // dofLerpScale = float4( -1 / d0, -1 / d1, -1 / d2, 1 / d2 );
     // dofLerpBias = float4( 1, (1 – d2) / d1, 1 / d2, (d2 – 1) / d2 );
-    var d0, d1, d2;
-    d0 = this.d0,
-      d1 = this.d1,
-      d2 = 1.0 - (d0 + d1);
+    const d0 = this.d0;
+    const d1 = this.d1;
+    const d2 = 1.0 - (d0 + d1);
 
     prg.uDofLerpScale(-1 / d0, -1 / d1, -1 / d2, 1 / d2);
     prg.uDofLerpBias(1, (1 - d2) / d1, 1 / d2, (d2 - 1) / d2);
@@ -376,20 +375,18 @@ export default class Dof extends BaseEffect {
 
   computeKernel(h:boolean) {
 
-    var bw = this.post!.bufferWidth / DOWNSCALE;
-    var bh = this.post!.bufferHeight / DOWNSCALE;
+    const bw = this.post!.bufferWidth / DOWNSCALE;
+    const bh = this.post!.bufferHeight / DOWNSCALE;
 
-    var numSamples = this.blurSamples * 2 + 1;
-    var bufferSize = h ? bw : bh;
-    var offsetSize = h ? bh : bw;
-    var halfOffset = .5 / bufferSize;
+    const numSamples = this.blurSamples * 2 + 1;
+    const bufferSize = h ? bw : bh;
+    const offsetSize = h ? bh : bw;
+    const halfOffset = .5 / bufferSize;
 
-    var kernel = this.blurKernel;
+    const kernel = this.blurKernel;
 
-    var SQRT_PI = Math.sqrt(Math.PI);
-
-    var o1 = h ? 0 : 1;
-    var o2 = h ? 1 : 0;
+    const o1 = h ? 0 : 1;
+    const o2 = h ? 1 : 0;
 
     for (var c = 0, sample = 0; sample < numSamples; ++sample) {
       var i = sample * 3;

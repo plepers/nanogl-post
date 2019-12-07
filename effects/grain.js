@@ -38,8 +38,8 @@ export default class Grain extends BaseEffect {
         this._noiseTex = null;
     }
     setupProgram(prg) {
-        var a = this.amount, s = this.sharpness;
-        var ig = 1 / G_SIZE, bw = this.post.bufferWidth, bh = this.post.bufferHeight, ms = 1 - this.sharpness;
+        const a = this.amount;
+        const ig = 1 / G_SIZE, bw = this.post.bufferWidth, bh = this.post.bufferHeight, ms = 1 - this.sharpness;
         prg.uGrainCoord(ig * bw, ig * bh, 0.5 * ms * ig, 0.5 * ms * ig);
         prg.uGrainScaleBias(2 * a, -a);
         prg.tGrain(this._noiseTex);

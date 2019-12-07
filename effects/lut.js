@@ -12,7 +12,7 @@ export default class LUT extends BaseEffect {
         this._code = code();
     }
     init() {
-        var gl = this.post.gl;
+        const gl = this.post.gl;
         this._lutTex = new Texture(gl, gl.RGB);
     }
     release() {

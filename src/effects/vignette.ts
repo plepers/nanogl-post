@@ -35,12 +35,13 @@ export default class Vignette extends BaseEffect {
 
 
   setupProgram(prg : Program) {
-    var c = this.color,
-      s = this.strength,
-      bw = this.post!.renderWidth,
-      bh = this.post!.renderHeight;
+    const c = this.color;
+    const s = this.strength;
+    const bw = this.post!.renderWidth;
+    const bh = this.post!.renderHeight;
 
-    var max = Math.max(bw, bh);
+    const max = Math.max(bw, bh);
+    
     prg.uVignetteAspect(
       bw / max,
       bh / max,

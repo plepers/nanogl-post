@@ -14,7 +14,8 @@ export default class Saturation extends BaseEffect {
         code.push(this._code);
     }
     setupProgram(prg) {
-        var a = this.amount, tint = this.tint;
+        const a = this.amount;
+        const tint = this.tint;
         prg.uSaturation(tint[0] * a, tint[1] * a, tint[2] * a);
     }
     init() { }

@@ -14,7 +14,10 @@ export default class Sharpen extends BaseEffect {
         code.push(this._code);
     }
     setupProgram(prg) {
-        var a = this.amount, l = this.limit, bw = this.post.bufferWidth, bh = this.post.bufferHeight;
+        const a = this.amount;
+        const l = this.limit;
+        const bw = this.post.bufferWidth;
+        const bh = this.post.bufferHeight;
         if (prg.uSharpenKernel)
             prg.uSharpenKernel(1 / bw, 0, 0, 1 / bh);
         prg.uSharpness(a, a / 4.0, l);

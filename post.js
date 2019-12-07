@@ -29,7 +29,7 @@ export default class Post {
         if (this.mipmap) {
             this.mainColor.bind();
             gl.generateMipmap(gl.TEXTURE_2D);
-            var err = gl.getError();
+            const err = gl.getError();
             if (err) {
                 this.mipmap = false;
                 this.mainFbo.dispose();
@@ -39,7 +39,7 @@ export default class Post {
         }
         this.mainColor.setFilter(false, this.mipmap, false);
         this.prg = new Program(gl);
-        var fsData = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
+        const fsData = new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]);
         this.fsPlane = new GLArrayBuffer(gl, fsData);
         this.fsPlane.attrib('aTexCoord0', 2, gl.FLOAT);
     }
@@ -67,17 +67,17 @@ export default class Post {
         ];
         if (isWebgl2(gl)) {
         }
-        var cfg = pf.getRenderableFormat(configs);
-        var fbo = new Fbo(gl);
+        const cfg = pf.getRenderableFormat(configs);
+        const fbo = new Fbo(gl);
         fbo.bind();
         fbo.attachColor(cfg.format, cfg.type, cfg.internal);
         fbo.attachDepth(ctxAttribs.depth, ctxAttribs.stencil, this.hasDepthTexture);
         fbo.resize(4, 4);
-        var color = fbo.getColor(0);
+        const color = fbo.getColor(0);
         color.bind();
         color.clamp();
         if (this.hasDepthTexture) {
-            var depth = fbo.getDepth();
+            const depth = fbo.getDepth();
             depth.bind();
             depth.clamp();
             depth.setFilter(false, false, false);
@@ -94,7 +94,7 @@ export default class Post {
         }
     }
     remove(effect) {
-        var i = this._effects.indexOf(effect);
+        const i = this._effects.indexOf(effect);
         if (i > -1) {
             this._effects.splice(i, 1);
             effect.release();
@@ -102,7 +102,7 @@ export default class Post {
             this._shaderInvalid = true;
             if (effect._flags !== 0) {
                 this._flags = 0;
-                for (var i = 0; i < this._effects.length; i++) {
+                for (var j = 0; j < this._effects.length; j++) {
                     this._flags |= effect._flags;
                 }
             }
@@ -120,8 +120,8 @@ export default class Post {
         this.renderWidth = w;
         this.renderHeight = h;
         if (this.enabled) {
-            var bufferWidth = this.mipmap ? nextPOT(w) : w;
-            var bufferHeight = this.mipmap ? nextPOT(h) : h;
+            const bufferWidth = this.mipmap ? nextPOT(w) : w;
+            const bufferHeight = this.mipmap ? nextPOT(h) : h;
             if (this.bufferWidth !== bufferWidth || this.bufferHeight !== bufferHeight) {
                 this.resize(bufferWidth, bufferHeight);
             }
@@ -131,7 +131,7 @@ export default class Post {
         return this.enabled && this._needDepth() && !this.hasDepthTexture;
     }
     bindColor() {
-        var gl = this.gl;
+        const gl = this.gl;
         if (this.enabled) {
             this.mainFbo.bind();
         }
@@ -145,7 +145,7 @@ export default class Post {
         if (!this.enabled) {
             return;
         }
-        var gl = this.gl;
+        const gl = this.gl;
         this.mainColor.bind();
         if (this.mipmap) {
             gl.generateMipmap(gl.TEXTURE_2D);
