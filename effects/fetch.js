@@ -1,25 +1,16 @@
-
-var BaseEffect = require( './base-effect' );
-
-
-function Fetch(){
-  BaseEffect.call( this );
-  this._code    = require( '../glsl/templates/fetch.frag' )();
+import BaseEffect from './base-effect';
+import code from '../glsl/templates/fetch.frag';
+export default class Fetch extends BaseEffect {
+    constructor() {
+        super();
+        this._code = code();
+    }
+    genCode(precode, code) {
+        code.push(this._code);
+    }
+    init() { }
+    release() { }
+    preRender() { }
+    setupProgram(prg) { }
+    resize(w, h) { }
 }
-
-
-Fetch.prototype = Object.create( BaseEffect.prototype );
-Fetch.prototype.constructor = Fetch;
-
-
-
-Fetch.prototype.genCode = function( precode, code ) {
-  code.   push( this._code )
-}
-
-
-// Fetch.prototype.setupProgram = function( prg ) {
-
-// }
-
-module.exports = Fetch;

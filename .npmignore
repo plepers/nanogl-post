@@ -1,1 +1,8 @@
+src
+node_modules
 test
+karma.conf.js
+.travis.yml
+LICENSE
+README.md
+tsconfig.json

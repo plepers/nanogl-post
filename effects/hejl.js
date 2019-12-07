@@ -1,21 +1,16 @@
-
-var BaseEffect = require( './base-effect' );
-
-
-function Hejl( amount ){
-  BaseEffect.call( this );
-
-  this._code    = require( '../glsl/templates/tm_hejl.frag' )();
+import BaseEffect from "./base-effect";
+import code from '../glsl/templates/tm_hejl.frag';
+export default class Hejl extends BaseEffect {
+    constructor(amount) {
+        super();
+        this._code = code();
+    }
+    genCode(precode, code) {
+        code.push(this._code);
+    }
+    init() { }
+    release() { }
+    preRender() { }
+    setupProgram(prg) { }
+    resize(w, h) { }
 }
-
-
-Hejl.prototype = Object.create( BaseEffect.prototype );
-Hejl.prototype.constructor = Hejl;
-
-
-Hejl.prototype.genCode = function( precode, code ) {
-  code.   push( this._code )
-}
-
-
-module.exports = Hejl;

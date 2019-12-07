@@ -1,39 +1,25 @@
-
-var BaseEffect = require( './base-effect' );
-
-
-function Saturation( amount ){
-  BaseEffect.call( this );
- 
-  this.tint          = [1, 1, 1];
-  this.amount        = amount;
-
-  this._preCode = require( '../glsl/templates/saturation_pre.frag' )();
-  this._code    = require( '../glsl/templates/saturation.frag' )();
+import BaseEffect from "./base-effect";
+import preCode from '../glsl/templates/saturation_pre.frag';
+import code from '../glsl/templates/saturation.frag';
+export default class Saturation extends BaseEffect {
+    constructor(amount) {
+        super();
+        this.tint = [1, 1, 1];
+        this.amount = amount;
+        this._preCode = preCode();
+        this._code = code();
+    }
+    genCode(precode, code) {
+        precode.push(this._preCode);
+        code.push(this._code);
+    }
+    setupProgram(prg) {
+        const a = this.amount;
+        const tint = this.tint;
+        prg.uSaturation(tint[0] * a, tint[1] * a, tint[2] * a);
+    }
+    init() { }
+    release() { }
+    preRender() { }
+    resize(w, h) { }
 }
-
-
-Saturation.prototype = Object.create( BaseEffect.prototype );
-Saturation.prototype.constructor = Saturation;
-
-
-
-Saturation.prototype.genCode = function( precode, code ) {
-  precode.push( this._preCode )
-  code.   push( this._code )
-}
-
-
-Saturation.prototype.setupProgram = function( prg ) {
-  var a     = this.amount,
-      tint  = this.tint;
-
-  prg.uSaturation(
-    tint[0]*a,
-    tint[1]*a,
-    tint[2]*a
-  );
-
-}
-
-module.exports = Saturation;
