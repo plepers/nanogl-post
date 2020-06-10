@@ -1,25 +1,16 @@
-
-var BaseEffect = require( './base-effect' );
-
-
-function GammaCorrection( gamma ){
-  BaseEffect.call( this );
-  this._code    = require( '../glsl/templates/gamma_correction.frag' )( {invGamma: 1.0/gamma});
+import code from '../glsl/templates/gamma_correction.frag';
+import BaseEffect from './base-effect';
+export default class GammaCorrection extends BaseEffect {
+    constructor(gamma) {
+        super();
+        this._code = code({ invGamma: 1.0 / gamma });
+    }
+    genCode(precode, code) {
+        code.push(this._code);
+    }
+    init() { }
+    release() { }
+    preRender() { }
+    setupProgram(prg) { }
+    resize(w, h) { }
 }
-
-
-GammaCorrection.prototype = Object.create( BaseEffect.prototype );
-GammaCorrection.prototype.constructor = GammaCorrection;
-
-
-
-GammaCorrection.prototype.genCode = function( precode, code ) {
-  code.   push( this._code )
-}
-
-
-// GammaCorrection.prototype.setupProgram = function( prg ) {
-
-// }
-
-module.exports = GammaCorrection;

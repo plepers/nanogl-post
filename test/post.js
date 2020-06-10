@@ -1,7 +1,7 @@
 var expect  = require( 'expect.js' );
 
-var Post     = require( '../post' );
-var Fetch    = require( '../effects/fetch' );
+import Post     from '../post'
+import Fetch    from '../effects/fetch'
 
 var testContext = require( './utils/TestContext' );
 var gl = testContext.getContext();
