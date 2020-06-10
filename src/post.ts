@@ -313,8 +313,9 @@ export default class Post {
       toFbo.bind();
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
     }
+    
+    gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
 
     gl.clearColor( .0, .0, .0, 1.0 );
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
