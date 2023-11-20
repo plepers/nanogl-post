@@ -49,6 +49,10 @@ export default class Bloom extends BaseEffect {
    */
   prcPrg: Program | null
 
+  /**
+   * @param {ArrayLike<number>} color The color of the bloom effect
+   * @param {number} size The size of the bloom effect
+   */
   constructor(color : ArrayLike<number>, size : number ) {
     super()
 
