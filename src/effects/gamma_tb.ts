@@ -3,8 +3,13 @@ import code from '../glsl/templates/gamma_tb.frag'
 import BaseEffect from './base-effect';
 import Program from 'nanogl/program';
 
+/**
+ * This class implements an alternative gamma correction.
+ *
+ * **Note :** Gamma correction may be applied directly within *nanogl-pbr*'s shader
+ */
 export default class GammaTB extends BaseEffect {
-
+  /** The shader code for this effect */
   _code: string;
 
   constructor() {

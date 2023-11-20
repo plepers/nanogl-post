@@ -4,11 +4,14 @@ import code from '../glsl/templates/tm_reinhard.frag'
 import BaseEffect from './base-effect';
 import Program from 'nanogl/program';
 
+/**
+ * This class implements Reinhard tone mapping.
+ */
 export default class Reinhard extends BaseEffect {
-
+  /** The shader code for this effect */
   _code: string;
 
-  constructor(amount: number) {
+  constructor() {
     super()
     this._code = code();
   }

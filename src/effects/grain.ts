@@ -23,17 +23,31 @@ function getNoiseData() {
   return _NoiseData;
 }
 
-
+/**
+ * This class implements a grain effect.
+ */
 export default class Grain extends BaseEffect {
-  
 
+  /** The amount of grain */
   amount: number;
+  /** The sharpness of the grain */
   sharpness: number;
 
+
+  /** The noise texture used for the grain */
   private _noiseTex: Texture | null;
+  /**
+   * The shader pre-code (uniforms, attributes, functions, etc.)
+   * for this effect
+   */
   private _preCode: string;
+  /** The shader code for this effect */
   private _code: string;
 
+  /**
+   * @param amount The amount value
+   * @param sharpness The sharpness value
+   */
   constructor(amount: number, sharpness: number) {
     super();
 

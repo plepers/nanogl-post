@@ -6,20 +6,46 @@ import preCode from '../glsl/templates/contrast_pre.frag'
 import code from '../glsl/templates/contrast.frag'
 import Program from 'nanogl/program';
 
-
+/**
+ * This class implements a contrast effect.
+ */
 export default class Contrast extends BaseEffect {
-
+  /** The contrast amount */
   contrast  : number;
+  /** The brightness amount */
   brightness: number;
+  /** The bias amount */
   bias      : number;
-  
+
+  /**
+   * The tint color for the contrast
+   * @defaultValue [1, 1, 1]
+   */
   contrastTint  : number[];
+  /**
+   * The tint color for the brightness
+   * @defaultValue [1, 1, 1]
+   */
   brightnessTint: number[];
+  /**
+   * The tint color for the bias
+   * @defaultValue [1, 1, 1]
+   */
   biasTint      : number[];
-  
+
+  /**
+   * The shader pre-code (uniforms, attributes, functions, etc.)
+   * for this effect
+   */
   _preCode: string;
+  /** The shader code for this effect */
   _code: string;
 
+  /**
+   * @param contrast The contrast value
+   * @param brightness The brightness value
+   * @param bias The bias value
+   */
   constructor(contrast : number, brightness : number, bias : number ) {
     super()
 
@@ -74,6 +100,6 @@ export default class Contrast extends BaseEffect {
   release(): void {}
   preRender(): void {}
   resize(w: number, h: number): void {}
-  
-  
+
+
 }
