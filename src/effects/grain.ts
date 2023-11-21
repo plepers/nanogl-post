@@ -45,8 +45,8 @@ export default class Grain extends BaseEffect {
   private _code: string;
 
   /**
-   * @param amount The amount value
-   * @param sharpness The sharpness value
+   * @param {number} amount The amount of grain
+   * @param {number} sharpness The sharpness of the grain
    */
   constructor(amount: number, sharpness: number) {
     super();

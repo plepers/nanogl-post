@@ -4,7 +4,7 @@ import BaseEffect from './base-effect';
 import Program from 'nanogl/program';
 
 /**
- * This class implements an alternative gamma correction.
+ * This class implements an alternative gamma correction, using the gamma curve from Marmoset Toolbag.
  *
  * **Note :** Gamma correction may be applied directly within *nanogl-pbr*'s shader
  */

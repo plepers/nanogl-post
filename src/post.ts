@@ -231,6 +231,7 @@ export default class Post {
 
   /**
    * Add a post-processing effect to the list.
+   * @param {BaseEffect} effect The effect to add
    */
   add( effect : BaseEffect ){
     if( this._effects.indexOf( effect ) === -1 ){
@@ -244,6 +245,7 @@ export default class Post {
 
   /**
    * Remove a post-processing effect from the list.
+   * @param {BaseEffect} effect The effect to remove
    */
   remove( effect : BaseEffect ){
     const i = this._effects.indexOf( effect );
@@ -267,6 +269,8 @@ export default class Post {
 
   /**
    * Resize the buffers and effects.
+   * @param {number} w The new width
+   * @param {number} h The new height
    */
   resize( w:number, h:number ){
 
@@ -283,6 +287,8 @@ export default class Post {
 
   /**
    * Prepare this post for render.
+   * @param {number} w The width to render
+   * @param {number} h The height to render
    */
   preRender( w:number, h:number ){
 

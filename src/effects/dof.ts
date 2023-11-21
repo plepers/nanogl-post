@@ -120,7 +120,7 @@ export default class Dof extends BaseEffect {
   fboBlurV: Fbo
   /** The FBO used for the horizontal blur */
   fboBlurH: Fbo
-  /** The FBO used for the near Coc */
+  /** The FBO used for the near CoC */
   fboCoc  : Fbo
   /** The FBO used for the med blur 3x3 */
   fboMed  : Fbo

@@ -42,9 +42,9 @@ export default class Contrast extends BaseEffect {
   _code: string;
 
   /**
-   * @param contrast The contrast value
-   * @param brightness The brightness value
-   * @param bias The bias value
+   * @param contrast The contrast amount
+   * @param brightness The brightness amount
+   * @param bias The bias amount
    */
   constructor(contrast : number, brightness : number, bias : number ) {
     super()

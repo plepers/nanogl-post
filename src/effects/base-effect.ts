@@ -21,7 +21,7 @@ export default abstract class BaseEffect {
    * depth pass, linear filtering
    */
   _flags: EffectDependency;
-  /** The post this effect belongs to */
+  /** The Post this effect belongs to */
   post: Post | null;
 
 
@@ -70,8 +70,8 @@ export default abstract class BaseEffect {
   abstract setupProgram( prg:Program ):void
   /**
    * Resize this effect.
-   * @param {number} w The width to use
-   * @param {number} h The height to use
+   * @param {number} w The new width
+   * @param {number} h The new height
    */
   abstract resize( w:number, h:number ):void
 

@@ -12,6 +12,9 @@ export default class GammaCorrection extends BaseEffect {
   /** The shader code for this effect */
   _code: string;
 
+  /**
+   * @param {number} gamma The gamma value
+   */
   constructor( gamma : number ){
     super()
     this._code    = code( {invGamma: 1.0/gamma});
