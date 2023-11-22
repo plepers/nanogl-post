@@ -1,7 +1,7 @@
 import Post from "../post";
 import Program from "nanogl/program";
 
-/** The dependencies an effect needs. **/
+/** The dependencies an effect needs. */
 export enum EffectDependency {
   /** No dependency */
   NONE = 0,
