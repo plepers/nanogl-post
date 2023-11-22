@@ -1,10 +1,13 @@
 import Post from "../post";
 import Program from "nanogl/program";
 
-
+/** The dependencies an effect needs. **/
 export enum EffectDependency {
+  /** No dependency */
   NONE = 0,
+  /** The effect needs the scene's depth texture */
   DEPTH = 1<<1,
+  /** The effect needs a linear sampler for the input color */
   LINEAR= 1<<2,
 }
 
