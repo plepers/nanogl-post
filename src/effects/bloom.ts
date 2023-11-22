@@ -27,6 +27,7 @@ export default class Bloom extends BaseEffect {
   color: ArrayLike<number>
   /** The size of the bloom effect */
   size: number
+  /** @hidden */
   bloomTextures: Texture[]
   /** The FBOs used to create the bloom effect */
   bloomTargets: Fbo[]
