@@ -12,38 +12,80 @@ import Effect, { EffectDependency }    from './effects/base-effect'
 import { GLContext, isWebgl2 } from 'nanogl/types'
 import BaseEffect from './effects/base-effect'
 
-
+/**
+ * This class manages post-processing effects.
+ */
 export default class Post {
-
+  /** The webgl context this Post belongs to */
   gl: GLContext
-  
+
+  /** The list of post-processing effects */
   _effects: BaseEffect[]
+  /**
+   * The dependencies the effects need :
+   * depth pass, linear filtering
+   */
   _flags: EffectDependency;
+  /** Whether the program is invalid or not */
   _shaderInvalid: boolean
 
+  /** The width to render */
   renderWidth : number
+  /** The height to render */
   renderHeight: number
+  /** The width of the buffer */
   bufferWidth : number
+  /** The height of the buffer */
   bufferHeight: number
-  
+
+  /** Whether the post-processing is enabled or not */
   enabled: boolean
+  /** Whether to generate mipmaps or not */
   mipmap: boolean
 
-  
+  /**
+   * The OES_texture_float webgl extension :
+   * exposes floating-point pixel types for textures
+   */
   float_texture_ext: OES_texture_float | null
+  /**
+   * The OES_texture_half_float webgl extension :
+   * adds texture formats with 16- and 32-bit floating-point components
+   */
   halfFloat: OES_texture_half_float | null
+  /**
+   * The OES_texture_half_float_linear webgl extension :
+   * allows linear filtering with half floating-point pixel types for textures
+   */
   float_texture_ext_l: OES_texture_half_float_linear | null
+  /**
+   * The OES_texture_float_linear webgl extension :
+   * allows linear filtering with floating-point pixel types for textures
+   */
   halfFloat_l: OES_texture_float_linear | null
+  /**
+   * The EXT_color_buffer_float webgl extension :
+   * adds the ability to render a variety of floating point formats
+   */
   color_buffer_float: any
+  /** Whether a texture with depth pixel format can be created or not */
   hasDepthTexture: boolean
-  
+
+  /** The main framebuffer */
   mainFbo: Fbo
+  /** The color texture of the main FBO */
   mainColor: Texture;
+  /** The program used to render all effects */
   prg: Program
+  /** The full-screen quad used to render all effects */
   fsPlane: GLArrayBuffer
 
+  /**
+    * @param {GLContext} gl  The webgl context this Post belongs to
+    * @param {boolean} [mipmap=false]  Whether to generate mipmaps or not
+    */
   constructor( gl : GLContext, mipmap : boolean = false ){
-    
+
     this.gl = gl;
 
     this._effects   = [];
@@ -65,7 +107,7 @@ export default class Post {
     this.halfFloat_l         = gl.getExtension("OES_texture_float_linear");
     this.color_buffer_float  = gl.getExtension('EXT_color_buffer_float');
 
-    
+
     this.hasDepthTexture = PixelFormats.getInstance(gl).hasDepthTexture();
 
 
@@ -103,23 +145,32 @@ export default class Post {
 
 
 
-
+  /**
+   * Delete all webgl objects related to this Post.
+   */
   dispose(){
     this.mainFbo.dispose();
     this.fsPlane.dispose();
     this.prg.dispose();
   }
 
-
+  /**
+   * Know whether the effects need a depth pass or not.
+   */
   _needDepth() : boolean {
     return (this._flags & EffectDependency.DEPTH) !== 0;
   }
 
+  /**
+   * Know whether the effects need linear filtering or not.
+   */
   _needLinear() : boolean {
     return (this._flags & EffectDependency.LINEAR) !== 0;
   }
 
-
+  /**
+   * Generate a framebuffer that can be used to render the effects.
+   */
   genFbo() : Fbo {
 
     const gl = this.gl;
@@ -127,12 +178,12 @@ export default class Post {
 
     const ctxAttribs        = gl.getContextAttributes()!;
 
-    const configs = [ 
+    const configs = [
       pf.RGB16F ,
       pf.RGBA16F,
       pf.RGB32F ,
       pf.RGBA32F,
-      pf.RGB8   
+      pf.RGB8
     ];
 
 
@@ -140,7 +191,7 @@ export default class Post {
       // webgl2
       // TODO Add option for 16f VS 10fixed
       // configs.push( pf.A2B10G10R10  );
-    }    
+    }
 
     // conatin RGB8  so cfg can't be null
     const cfg = pf.getRenderableFormat( configs )!;
@@ -178,7 +229,10 @@ export default class Post {
 
 
 
-
+  /**
+   * Add a post-processing effect to the list.
+   * @param {BaseEffect} effect The effect to add
+   */
   add( effect : BaseEffect ){
     if( this._effects.indexOf( effect ) === -1 ){
       this._effects.push( effect );
@@ -189,7 +243,10 @@ export default class Post {
     }
   }
 
-
+  /**
+   * Remove a post-processing effect from the list.
+   * @param {BaseEffect} effect The effect to remove
+   */
   remove( effect : BaseEffect ){
     const i = this._effects.indexOf( effect );
     if( i > -1 ){
@@ -210,12 +267,16 @@ export default class Post {
   }
 
 
-
+  /**
+   * Resize the buffers and effects.
+   * @param {number} w The new width
+   * @param {number} h The new height
+   */
   resize( w:number, h:number ){
 
     this.bufferWidth  = w;
     this.bufferHeight = h;
-    
+
     this.mainFbo.resize( this.bufferWidth, this.bufferHeight );
 
     for( var i=0; i< this._effects.length; i++ ){
@@ -224,12 +285,16 @@ export default class Post {
 
   }
 
-
+  /**
+   * Prepare this post for render.
+   * @param {number} w The width to render
+   * @param {number} h The height to render
+   */
   preRender( w:number, h:number ){
 
     this.renderWidth  = w;
     this.renderHeight = h;
-    
+
     if( this.enabled ){
 
       const bufferWidth  = this.mipmap ? nextPOT( w ) : w;
@@ -243,7 +308,9 @@ export default class Post {
 
   }
 
-
+  /**
+   * Know whether this Post needs a depth pass or not.
+   */
   needDepthPass(){
     return this.enabled && this._needDepth() && !this.hasDepthTexture;
   }
@@ -263,7 +330,12 @@ export default class Post {
   // }
 
 
-
+  /**
+   * Bind the main framebuffer (or the default FBO if
+   * post-processing is not enabled) and prepare the viewport.
+   *
+   * Call this method before rendering the scene.
+   */
   bindColor( ){
 
 
@@ -284,7 +356,14 @@ export default class Post {
 
   }
 
-
+  /**
+   * Render the effects.
+   *
+   * **Important :** The scene should be rendered to the main FBO before calling this method.
+   * You can use {@link Post#bindColor} before rendering the scene to do so.
+   *
+   * @param {Fbo} [toFbo]  The framebuffer to render to. If not specified, render to the screen.
+   */
   render( toFbo? : Fbo ){
 
 
@@ -314,7 +393,7 @@ export default class Post {
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
-    
+
     gl.viewport( 0, 0, this.renderWidth, this.renderHeight );
 
     gl.clearColor( .0, .0, .0, 1.0 );
@@ -351,7 +430,11 @@ export default class Post {
 
   }
 
-
+  /**
+   * Draw the full-screen quad with the given program.
+   * @param {Program} prg  The program to use
+   * @param {boolean} [fullframe=false]  Whether to render the full frame or not
+   */
   fillScreen( prg : Program, fullframe : boolean = false ){
     if( fullframe === true ){
       prg.uViewportScale( 1, 1 );
@@ -366,7 +449,9 @@ export default class Post {
     this.fsPlane.drawTriangleStrip();
   }
 
-
+  /**
+   * Build the program used to render all the effects.
+   */
   buildProgram(){
 
 
@@ -395,7 +480,7 @@ export default class Post {
     if( isWebgl2( this.gl ) ) {// webgl2
       defs += '#version 300 es\n';
     }
-    
+
     defs += 'precision highp float;\n';
     defs += '#define NEED_DEPTH '    +(+this._needDepth())+'\n';
     defs += '#define TEXTURE_DEPTH ' +(+depthTex)       +'\n';

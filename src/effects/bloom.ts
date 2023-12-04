@@ -17,22 +17,43 @@ import bloomCode    from '../glsl/templates/bloom.frag'
 
 const TEX_SIZE = 256;
 
+/**
+ * This class implements a bloom effect.
+ */
 export default class Bloom extends BaseEffect {
 
 
-
+  /** The color of the bloom effect */
   color: ArrayLike<number>
+  /** The size of the bloom effect */
   size: number
+  /** @hidden */
   bloomTextures: Texture[]
+  /** The FBOs used to create the bloom effect */
   bloomTargets: Fbo[]
-  
+
+  /** The number of samples used to create the bloom effect */
   bloomSamples: number
+  /** The kernel used to create the bloom effect */
   bloomKernel: Float32Array|null
 
+  /**
+   * The shader pre-code (uniforms, attributes, functions, etc.)
+   * for this effect
+   */
   _preCode: string
+  /** The shader code for this effect */
   _code: string
+  /**
+   * The program used for the intermediate steps
+   * to create the bloom effect
+   */
   prcPrg: Program | null
 
+  /**
+   * @param {ArrayLike<number>} color The color of the bloom effect
+   * @param {number} size The size of the bloom effect
+   */
   constructor(color : ArrayLike<number>, size : number ) {
     super()
 
@@ -175,6 +196,10 @@ export default class Bloom extends BaseEffect {
 
 
 
+  /**
+   * Compute the kernel used to offset the
+   * texture coordinates for the bloom effect.
+   */
   computeKernel() {
 
     const kernel = this.bloomKernel!;
@@ -203,6 +228,9 @@ export default class Bloom extends BaseEffect {
 
 
 
+  /**
+   * Transpose the bloom kernel based on the render aspect ratio.
+   */
   transposeKernel() {
 
     const kernel = this.bloomKernel!;

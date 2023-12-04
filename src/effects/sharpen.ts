@@ -4,14 +4,27 @@ import preCode from '../glsl/templates/sharpen_pre.frag'
 import code    from '../glsl/templates/sharpen.frag'
 import Program from "nanogl/program";
 
+/**
+ * This class implements a sharpness effect.
+ */
 export default class Sharpen extends BaseEffect {
 
-  
+  /** The sharpness amount */
   amount: number;
+  /** The sharpness limit */
   limit: number;
+  /**
+   * The shader pre-code (uniforms, attributes, functions, etc.)
+   * for this effect
+   */
   _preCode: string;
+  /** The shader code for this effect */
   _code: string;
 
+  /**
+   * @param {number} amount The sharpness amount
+   * @param {number} limit The sharpness limit
+   */
   constructor( amount : number, limit : number ){
     super()
 

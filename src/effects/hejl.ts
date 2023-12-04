@@ -3,11 +3,14 @@ import BaseEffect from "./base-effect";
 import code from '../glsl/templates/tm_hejl.frag'
 import Program from "nanogl/program";
 
+/**
+ * This class implements Hejl tone mapping.
+ */
 export default class Hejl extends BaseEffect {
-
+  /** The shader code for this effect */
   _code: string;
 
-  constructor(amount: number) {
+  constructor() {
     super()
     this._code = code();
   }

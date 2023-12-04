@@ -38,37 +38,99 @@ const V3Z = vec3.create();
 
 const DOWNSCALE = 4;
 
-
+/**
+ * This class implements a depth of field effect.
+ */
 export default class Dof extends BaseEffect {
-
+  /** The camera used to render the scene */
   camera: Camera
+  /** Whether this effect is available or not */
   _available: boolean
+  /**
+   * The focus depth for this effect
+   * @defaultValue 1.3
+   */
   focus: number
+  /**
+   * The range of focus for this effect
+   * @defaultValue 0
+   */
   focusRange: number
+  /**
+   * The far depth for this effect
+   * @defaultValue 4
+   */
   far: number
+  /**
+   * The near depth for this effect
+   * @defaultValue 1
+   */
   near: number
+  /**
+   * The ratio of the far to the near blur radius
+   * @defaultValue 0.5
+   */
   farBlur: number
+  /**
+   * The distance where the fade from
+   * the unblurred sample to the small blur happens
+   *
+   * (`this.d0 + this.d1` must be less than `1`)
+   *
+   * @defaultValue 0.2
+   */
   d0: number
+  /**
+   * The distance where the fade from
+   * the the small blur to the medium blur happens
+   *
+   * (`this.d0 + this.d1` must be less than `1`)
+   *
+   * @defaultValue 0.2
+   */
   d1: number
+  /**
+   * The number of samples used to create the blur effect
+   * @defaultValue 2
+   */
   blurSamples: number
+  /** The kernel used to create the blur effect */
   blurKernel: Float32Array
 
+  /** The program used for the downsampling */
   prgDS  : Program
+  /** The program used for the blur */
   prgBlur: Program
+  /** The program used for the near CoC */
   prgCoc : Program
+  /** The program used for the med blur 3x3 */
   prgMed : Program
 
+  /**
+   * The shader pre-code (uniforms, attributes, functions, etc.)
+   * for this effect
+   */
   _preCode: string
+  /** The shader code for this effect */
   _code: string
 
+  /** The FBO used for the down sampling */
   fboDS   : Fbo
+  /** The FBO used for the vertical blur */
   fboBlurV: Fbo
+  /** The FBO used for the horizontal blur */
   fboBlurH: Fbo
+  /** The FBO used for the near CoC */
   fboCoc  : Fbo
+  /** The FBO used for the med blur 3x3 */
   fboMed  : Fbo
 
+  /** The depth sampler */
   depthSampler: Sampler | null
 
+  /**
+   * @param {Camera} camera The camera used to render the scene
+   */
   constructor(camera: Camera) {
     super()
 
@@ -111,7 +173,9 @@ export default class Dof extends BaseEffect {
   }
 
 
-
+  /**
+   * Generate a framebuffer that can be used for this effect.
+   */
   genFbo() {
     const gl = this.post!.gl;
     const res = new Fbo(gl);
@@ -206,7 +270,9 @@ export default class Dof extends BaseEffect {
     code.push(this._code)
   }
 
-
+  /**
+   * Get the near equation used to compute the depth of field effect.
+   */
   getNearEq() {
 
     var proj = this.camera.lens.getProjection();
@@ -225,7 +291,10 @@ export default class Dof extends BaseEffect {
     return V2;
   };
 
-
+  /**
+   * Get the far equation used to compute the depth of field effect.
+   * The z value is the ratio of the far to the near blur radius.
+   */
   getFarEq() {
     var proj = this.camera.lens.getProjection();
 
@@ -372,7 +441,11 @@ export default class Dof extends BaseEffect {
 
 
 
-
+  /**
+   * Compute the kernel used to offset the
+   * texture coordinates for the blur effect.
+   * @param {boolean} h Whether the kernel is horizontal or not
+   */
   computeKernel(h:boolean) {
 
     const bw = this.post!.bufferWidth / DOWNSCALE;
